@@ -43,7 +43,7 @@ class ClarifyWithUser(BaseModel):
 class ResearchQuestion(BaseModel):
     """Research question and brief for guiding research."""
     
-    research_brief: str = Field(
+    research_question: str = Field(
         description="A research question that will be used to guide the research.",
     )
 
