@@ -37,15 +37,15 @@ def main() -> None:
     if args.command == "trend":
         from blog_writer.trend_analyzer import analyze_trend
 
-        result = analyze_trend(args.topic)
-        print(f"トピック: {result.topic}")
-        print(f"関連クエリ: {', '.join(result.related_queries)}")
+        trend_result = analyze_trend(args.topic)
+        print(f"トピック: {trend_result.topic}")
+        print(f"関連クエリ: {', '.join(trend_result.related_queries)}")
 
     elif args.command == "seo":
         from blog_writer.seo_checker import check_seo
 
         report = check_seo(args.file)
-        print(f"SEO スコア: {report.score}/100")
+        print(f"SEO スコア: {report.total_score}/100")
         if report.issues:
             print("問題:")
             for issue in report.issues:
@@ -54,12 +54,12 @@ def main() -> None:
     elif args.command == "validate":
         from blog_writer.markdown_validator import validate_markdown
 
-        result = validate_markdown(args.file)
-        if result.is_valid:
+        validation_result = validate_markdown(args.file)
+        if validation_result.is_valid:
             print("バリデーション通過")
         else:
             print("バリデーション失敗:")
-            for error in result.errors:
+            for error in validation_result.errors:
                 print(f"  - {error}")
             sys.exit(1)
 
