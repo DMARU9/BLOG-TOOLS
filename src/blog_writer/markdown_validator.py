@@ -2,8 +2,7 @@ import json
 import re
 import subprocess
 import sys
-from dataclasses import dataclass, asdict
-from typing import List
+from dataclasses import asdict, dataclass
 
 
 @dataclass
@@ -12,7 +11,7 @@ class ValidationResult:
     is_valid: bool
     frontmatter_valid: bool
     markdownlint_valid: bool
-    errors: List[str]
+    errors: list[str]
 
 
 REQUIRED_FRONTMATTER = ['title', 'description', 'pubDate']
@@ -59,8 +58,8 @@ def validate_markdown(file_path: str) -> ValidationResult:
                     errors.append(f"markdownlint: {line}")
     except FileNotFoundError:
         errors.append("markdownlintが見つかりません (npm install -D markdownlint-cli)")
-    except Exception as e:
-        errors.append(f"markdownlint実行エラー: {str(e)}")
+    except Exception as e:  # noqa: BLE001
+        errors.append(f"markdownlint実行エラー: {e!s}")
 
     return ValidationResult(
         file_path=file_path,

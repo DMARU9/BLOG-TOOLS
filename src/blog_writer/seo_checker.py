@@ -1,12 +1,16 @@
 import json
 import re
 import sys
-from dataclasses import dataclass, asdict
-from typing import List
+from dataclasses import asdict, dataclass
 
 from bs4 import BeautifulSoup
 
-from .config import MIN_TITLE_LENGTH, MAX_TITLE_LENGTH, MIN_DESCRIPTION_LENGTH, MAX_DESCRIPTION_LENGTH
+from .config import (
+    MAX_DESCRIPTION_LENGTH,
+    MAX_TITLE_LENGTH,
+    MIN_DESCRIPTION_LENGTH,
+    MIN_TITLE_LENGTH,
+)
 
 
 @dataclass
@@ -17,7 +21,7 @@ class SeoReport:
     heading_score: float
     alt_text_score: float
     total_score: float
-    issues: List[str]
+    issues: list[str]
 
 
 def check_seo(file_path: str) -> SeoReport:

@@ -1,19 +1,16 @@
 import json
 import os
 import sys
-from dataclasses import dataclass, asdict
-from typing import List, Optional
-
-from bs4 import BeautifulSoup
+from dataclasses import asdict, dataclass
 
 
 @dataclass
 class ProjectInfo:
     name: str
     description: str
-    tech_stack: List[str]
+    tech_stack: list[str]
     readme_summary: str
-    directory_structure: Optional[str] = None
+    directory_structure: str | None = None
 
 
 def analyze_project(path: str) -> ProjectInfo:
@@ -90,7 +87,7 @@ def analyze_project(path: str) -> ProjectInfo:
     return ProjectInfo(
         name=name,
         description=description,
-        tech_stack=sorted(list(tech_stack)),
+        tech_stack=sorted(tech_stack),
         readme_summary=readme_summary
     )
 

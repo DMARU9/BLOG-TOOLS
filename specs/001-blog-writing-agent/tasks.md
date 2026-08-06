@@ -157,10 +157,10 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Update `contracts/orchestrator-api.md` with agent interfaces
 
 ### T022 最終検証
-- Run `pytest tests/ -v` to verify all tests pass
-- Run `ruff check src/blog_writer/` to verify code quality
-- Run `mypy src/blog_writer/` to verify type safety
-- Manual test: run `/blog-writer "test topic"` in VS Code Copilot
+- [X] Run `pytest tests/ -v` to verify all tests pass
+- [X] Run `ruff check src/blog_writer/` to verify code quality
+- [X] Run `mypy src/blog_writer/` to verify type safety
+- [ ] Manual test: run `/blog-writer "test topic"` in VS Code Copilot
 
 ---
 

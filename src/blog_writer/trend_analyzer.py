@@ -1,8 +1,7 @@
 import json
-import time
 import sys
-from dataclasses import dataclass, asdict
-from typing import List, Optional
+import time
+from dataclasses import asdict, dataclass
 
 from pytrends.request import TrendReq
 
@@ -12,9 +11,9 @@ from .config import PYTRENDS_SLEEP_SECONDS
 @dataclass
 class TrendResult:
     topic: str
-    interest_over_time: List[dict]
-    related_queries: List[str]
-    high_trend_topics: Optional[List[str]] = None
+    interest_over_time: list[dict]
+    related_queries: list[str]
+    high_trend_topics: list[str] | None = None
     trend_score: float = 0.0
     recommendation: str = ""
 
@@ -66,12 +65,12 @@ def analyze_trend(topic: str) -> TrendResult:
             trend_score=trend_score,
             recommendation=recommendation
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return TrendResult(
             topic=topic,
             interest_over_time=[],
             related_queries=[],
-            recommendation=f"分析中にエラーが発生しました: {str(e)}"
+            recommendation=f"分析中にエラーが発生しました: {e!s}"
         )
 
 
