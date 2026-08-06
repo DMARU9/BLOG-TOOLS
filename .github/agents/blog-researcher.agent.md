@@ -68,6 +68,7 @@ curl -X POST http://127.0.0.1:2024/runs/stream \
     "name": "",
     "tech_stack": [],
     "description": ""
-  }
+  },
+  "output_path": "/home/takumi/github/DMARU9.github.io/src/content/blog/"
 }
 ```

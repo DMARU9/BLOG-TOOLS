@@ -13,6 +13,8 @@ user-invocable: false
 
 以下の情報を受け取ります：
 1. **ファイルパス** (必須): チェック対象のブログ記事ファイル
+   - **デフォルトパス**: `/home/takumi/github/DMARU9.github.io/src/content/blog/`
+   - **設定変更時**: 環境変数 `BLOG_OUTPUT_DIR` で指定されたパス
 2. **トピック** (任意): 事実確認用のトピック
 
 ## 実行手順
