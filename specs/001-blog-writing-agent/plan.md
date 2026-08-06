@@ -82,27 +82,33 @@ specs/001-blog-writing-agent/
 └── styles/
     └── blog-style-guide.md               # ブログスタイルガイド
 
-src/
-├── blog_writer/                          # ツールアプリ群
-│   ├── __init__.py
-│   ├── trend_analyzer.py                 # pytrends ベースのトレンド分析
-│   ├── project_analyzer.py               # プロジェクト/ディレクトリ解析
-│   ├── seo_checker.py                    # SEO チェック（searchstack-aeo + カスタム）
-│   ├── markdown_validator.py             # Markdown フォーマット検証
-│   └── config.py                         # 設定管理
-
-tests/
-├── unit/
-│   ├── test_trend_analyzer.py
-│   ├── test_project_analyzer.py
-│   ├── test_seo_checker.py
-│   └── test_markdown_validator.py
-└── conftest.py
+blog_writer/
+├── src/
+│   └── blog_writer/                          # ツールアプリ群
+│       ├── __init__.py
+│       ├── __main__.py                       # CLI エントリーポイント
+│       ├── trend_analyzer.py                 # pytrends ベースのトレンド分析
+│       ├── project_analyzer.py               # プロジェクト/ディレクトリ解析
+│       ├── seo_checker.py                    # SEO チェック（searchstack-aeo + カスタム）
+│       ├── markdown_validator.py             # Markdown フォーマット検証
+│       └── config.py                         # 設定管理
+├── tests/
+│   ├── unit/
+│   │   ├── test_trend_analyzer.py
+│   │   ├── test_project_analyzer.py
+│   │   ├── test_seo_checker.py
+│   │   └── test_markdown_validator.py
+│   ├── integration/
+│   │   └── test_full_flow.py
+│   └── conftest.py
+├── pyproject.toml
+├── .markdownlint.json
+└── README.md
 ```
 
 **Structure Decision**:
 - **フロー管理は Copilot エージェントに委ねる**: `.github/agents/blog-writer.agent.md` がリサーチ→執筆→品質チェック→SEO→修正の手順を指示し、各フェーズでサブエージェントやツールアプリを呼び出す
-- **ツールアプリはスタンドアロン**: `src/blog_writer/` には分析・検証用の Python スクリプトのみ配置。各スクリプトは独立して実行可能（`python -m blog_writer.trend_analyzer` 等）
+- **ツールアプリはスタンドアロン**: `blog_writer/src/blog_writer/` には分析・検証用の Python スクリプトのみ配置。各スクリプトは独立して実行可能（`python -m blog_writer.trend_analyzer` 等）
 - **LangGraph は不使用**: Copilot の自然な会話フローでフロー管理が可能であり、過度なフレームワーク導入を避ける
 - **拡張性**: ツールアプリの追加・変更は `blog_writer/` ディレクトリ内で完結し、エージェント定義の手順に追加するだけで連携可能
 

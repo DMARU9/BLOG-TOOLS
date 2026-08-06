@@ -169,6 +169,9 @@ python -m blog_writer.seo_checker src/content/blog/test.md
 ### テストの実行
 
 ```bash
+# blog_writer ディレクトリに移動
+cd blog_writer
+
 # 全テスト実行
 uv run pytest tests/ -v
 
@@ -182,39 +185,49 @@ uv run pytest tests/integration/ -v
 ### コード品質チェック
 
 ```bash
+# blog_writer ディレクトリに移動
+cd blog_writer
+
 # リントチェック
-uv run ruff check src/blog_writer/
+uv run ruff check src/
 
 # 型チェック
-uv run mypy src/blog_writer/
+uv run mypy src/
 ```
 
 ### プロジェクト構造
 
 ```
 BLOG-TOOLS/
-├── src/blog_writer/              # Python ツールアプリ群
-│   ├── __init__.py
-│   ├── config.py                 # 設定管理
-│   ├── trend_analyzer.py         # トレンド分析
-│   ├── project_analyzer.py       # プロジェクト解析
-│   ├── seo_checker.py            # SEO チェック
-│   └── markdown_validator.py     # Markdown 検証
+├── blog_writer/                    # ブログ作成支援ツール
+│   ├── src/
+│   │   └── blog_writer/            # Python ツールアプリ群
+│   │       ├── __init__.py
+│   │       ├── __main__.py         # CLI エントリーポイント
+│   │       ├── config.py           # 設定管理
+│   │       ├── trend_analyzer.py   # トレンド分析
+│   │       ├── project_analyzer.py # プロジェクト解析
+│   │       ├── seo_checker.py      # SEO チェック
+│   │       └── markdown_validator.py # Markdown 検証
+│   ├── tests/
+│   │   ├── unit/                   # ユニットテスト
+│   │   └── integration/            # 統合テスト
+│   ├── pyproject.toml
+│   ├── .markdownlint.json
+│   └── README.md
 ├── .github/
-│   ├── agents/                   # Copilot エージェント定義
+│   ├── agents/                     # Copilot エージェント定義
 │   │   ├── blog-writer.agent.md
 │   │   ├── blog-researcher.agent.md
 │   │   └── blog-quality-checker.agent.md
-│   ├── prompts/                  # エージェントプロンプト
+│   ├── prompts/                    # エージェントプロンプト
 │   │   ├── blog-writer.prompt.md
 │   │   ├── blog-researcher.prompt.md
 │   │   └── blog-quality-checker.prompt.md
 │   └── styles/
 │       └── blog-style-guide.md
-├── tests/
-│   ├── unit/                     # ユニットテスト
-│   └── integration/              # 統合テスト
-└── specs/001-blog-writing-agent/ # 仕様書
+├── open_deep_research/             # Deep Research ツール
+└── specs/001-blog-writing-agent/   # 仕様書
 ```
 
 ---
