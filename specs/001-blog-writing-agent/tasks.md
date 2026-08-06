@@ -10,13 +10,13 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 
 ## Phase 0: Setup
 
-- [ ] T001 プロジェクト構造の初期化
+- [X] T001 プロジェクト構造の初期化
   - Create `src/blog_writer/__init__.py`
   - Create `src/blog_writer/config.py`
   - Create `tests/__init__.py` and `tests/conftest.py`
   - Create `pyproject.toml` に依存関係を定義（pytrends, searchstack, markdownlint）
 
-- [ ] T002 依存関係のインストール確認
+- [X] T002 依存関係のインストール確認
   - Run `uv sync` to install Python dependencies
   - Run `npm list -g markdownlint-cli` to verify markdownlint
   - Run `pip list | grep -E "pytrends|searchstack|website-seo-audit"` to verify pip packages

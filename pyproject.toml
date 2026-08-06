@@ -6,8 +6,8 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "pytrends>=4.9.2",
-    "markdownlint>=0.1.0",
-    "httpx>=0.25.0"
+    "httpx>=0.25.0",
+    "beautifulsoup4>=4.12.0"
 ]
 
 [project.scripts]
