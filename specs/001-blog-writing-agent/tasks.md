@@ -36,10 +36,10 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Add CLI interface: `python -m blog_writer.trend_analyzer <topic>`
 
 ### T005 project_analyzer.py 作成
-- Create `src/blog_writer/project_analyzer.py`
-- Implement README parsing and directory structure analysis
-- Return `ProjectInfo` with name, description, tech_stack, readme_summary
-- Add CLI interface: `python -m blog_writer.project_analyzer <path>`
+- [X] Create `src/blog_writer/project_analyzer.py`
+- [X] Implement README parsing and directory structure analysis
+- [X] Return `ProjectInfo` with name, description, tech_stack, readme_summary
+- [X] Add CLI interface: `python -m blog_writer.project_analyzer <path>`
 
 ### T006 seo_checker.py 作成
 - Create `src/blog_writer/seo_checker.py`
