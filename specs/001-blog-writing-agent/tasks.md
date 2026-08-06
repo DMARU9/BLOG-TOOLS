@@ -92,10 +92,10 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Add rate limiting for pytrends (sleep 5s between requests)
 
 ### T013 blog-researcher.prompt.md 作成
-- Create `.github/prompts/blog-researcher.prompt.md`
-- Include research prompt template for open_deep_research
-- Include trend analysis instructions
-- Include project/directory analysis instructions
+- [X] Create `.github/prompts/blog-researcher.prompt.md`
+- [X] Include research prompt template for open_deep_research
+- [X] Include trend analysis instructions
+- [X] Include project/directory analysis instructions
 
 ### T014 blog-quality-checker.agent.md 作成
 - Create `.github/agents/blog-quality-checker.agent.md` as sub-agent (user-invocable: false)
@@ -114,10 +114,10 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 ## Phase 3: User Story 2 (P2: 詳細指定付き記事生成)
 
 ### T016 blog-researcher にプロジェクト解析機能追加
-- Update `.github/agents/blog-researcher.agent.md`
-- Add step to call `python -m blog_writer.project_analyzer <path>` when directory_path is provided
-- Add step to read README when project_name is provided
-- Integrate project info into research results
+- [X] Update `.github/agents/blog-researcher.agent.md`
+- [X] Add step to call `python -m blog_writer.project_analyzer <path>` when directory_path is provided
+- [X] Add step to read README when project_name is provided
+- [X] Integrate project info into research results
 
 ### T017 blog-writer に補足情報処理追加
 - Update `.github/agents/blog-writer.agent.md`
