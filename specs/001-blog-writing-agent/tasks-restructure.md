@@ -48,16 +48,16 @@ spec.md で定義されているが、実装されていない機能:
 
 ### タスク一覧
 
-- [ ] T023-1: `blog_writer/` ディレクトリの作成
-- [ ] T023-2: `src/blog_writer/` → `blog_writer/src/blog_writer/` に移動
-- [ ] T023-3: `tests/` → `blog_writer/tests/` に移動
-- [ ] T023-4: `pyproject.toml` → `blog_writer/pyproject.toml` に移動
-- [ ] T023-5: `__main__.py` の追加
-- [ ] T023-6: `.markdownlint.json` の移動
-- [ ] T023-7: テストの実行確認
-- [ ] T023-8: ruff/mypy の設定更新
-- [ ] T023-9: .github/agents/ のエージェント定義更新
-- [ ] T023-10: specs/001-blog-writing-agent/ のドキュメント更新
+- [x] T023-1: `blog_writer/` ディレクトリの作成 (#23)
+- [x] T023-2: `src/blog_writer/` → `blog_writer/src/blog_writer/` に移動 (#24)
+- [x] T023-3: `tests/` → `blog_writer/tests/` に移動 (#25)
+- [x] T023-4: `pyproject.toml` → `blog_writer/pyproject.toml` に移動 (#26)
+- [x] T023-5: `__main__.py` の追加 (#27)
+- [x] T023-6: `.markdownlint.json` の移動 (#28)
+- [x] T023-7: テストの実行確認 (#29)
+- [x] T023-8: ruff/mypy の設定更新 (#30)
+- [x] T023-9: .github/agents/ のエージェント定義更新 (#31)
+- [x] T023-10: specs/001-blog-writing-agent/ のドキュメント更新 (#32)
 
 ---
 
@@ -65,14 +65,14 @@ spec.md で定義されているが、実装されていない機能:
 
 ### 未実装機能
 
-- [ ] T024-1: `__main__.py` の作成 → `python -m blog_writer` で実行可能にする
-- [ ] T024-2: searchstack-aeo 統合の検討 (FR-013a)
+- [ ] T024-1: `__main__.py` の作成 → `python -m blog_writer` で実行可能にする (#33)
+- [ ] T024-2: searchstack-aeo 統合の検討 (FR-013a) (#34)
   - searchstack パッケージが利用可能か確認
   - 無料コマンド (meta, schema, links, onpage) の動作確認
   - seo_checker.py への統合
-- [ ] T024-3: website-seo-audit 統合の検討 (FR-014)
+- [ ] T024-3: website-seo-audit 統合の検討 (FR-014) (#35)
   - スコープ外だが、将来の実装に備えて調査
-- [ ] T024-4: エージェントの動作確認
+- [ ] T024-4: エージェントの動作確認 (#36)
   - `/blog-writer` コマンドの動作テスト
   - サブエージェント呼び出しの動作確認
 
