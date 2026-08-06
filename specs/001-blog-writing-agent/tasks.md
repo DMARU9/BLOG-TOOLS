@@ -79,11 +79,11 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Include writing guidelines
 
 ### T011 blog-style-guide.md 作成
-- Create `.github/styles/blog-style-guide.md`
-- Define tone: "です・ます" form, friendly
-- Define structure: intro → target reader → TOC → main → summary → references
-- Define Mermaid diagram guidelines
-- Define SEO rules
+- [X] Create `.github/styles/blog-style-guide.md`
+- [X] Define tone: "です・ます" form, friendly
+- [X] Define structure: intro → target reader → TOC → main → summary → references
+- [X] Define Mermaid diagram guidelines
+- [X] Define SEO rules
 
 ### T012 blog-researcher.agent.md 作成
 - Create `.github/agents/blog-researcher.agent.md` as sub-agent (user-invocable: false)
