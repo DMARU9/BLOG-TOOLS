@@ -42,11 +42,11 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Add CLI interface: `python -m blog_writer.project_analyzer <path>`
 
 ### T006 seo_checker.py 作成
-- Create `src/blog_writer/seo_checker.py`
-- Implement title length (30-60 chars), description length (120-160 chars) validation
-- Implement heading structure validation (H1 count, H2/H3 order)
-- Implement alt text coverage check
-- Add CLI interface: `python -m blog_writer.seo_checker <file>`
+- [X] Create `src/blog_writer/seo_checker.py`
+- [X] Implement title length (30-60 chars), description length (120-160 chars) validation
+- [X] Implement heading structure validation (H1 count, H2/H3 order)
+- [X] Implement alt text coverage check
+- [X] Add CLI interface: `python -m blog_writer.seo_checker <file>`
 
 ### T007 markdown_validator.py 作成
 - Create `src/blog_writer/markdown_validator.py`
