@@ -65,16 +65,25 @@ def analyze_project(path: str) -> ProjectInfo:
     if os.path.exists(readme_path):
         with open(readme_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            # Simple extraction: first 200 chars or first paragraph
+            # Simple extraction: first paragraph or first 200 chars
             lines = content.split('\n')
-            # Skip title and empty lines
-            for line in lines[1:]:
+            summary_lines = []
+            found_content = False
+            for line in lines:
                 clean_line = line.strip()
-                if clean_line and not clean_line.startswith('#'):
-                    readme_summary = clean_line[:200]
-                    break
-            if not readme_summary and lines:
-                readme_summary = lines[0][:200]
+                if not clean_line:
+                    if found_content:
+                        break
+                    continue
+                if clean_line.startswith('#'):
+                    # Include title in summary if it's the start
+                    summary_lines.append(clean_line.lstrip('#').strip())
+                    found_content = True
+                else:
+                    summary_lines.append(clean_line)
+                    found_content = True
+            
+            readme_summary = ' '.join(summary_lines)[:200]
 
     description = f"プロジェクト「{name}」の分析結果です。"
     

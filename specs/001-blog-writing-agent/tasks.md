@@ -55,22 +55,22 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Add CLI interface: `python -m blog_writer.markdown_validator <file>`
 
 ### T008 ツールアプリのユニットテスト作成
-- Create `tests/unit/test_trend_analyzer.py`
-- Create `tests/unit/test_project_analyzer.py`
-- Create `tests/unit/test_seo_checker.py`
-- Create `tests/unit/test_markdown_validator.py`
-- Run `pytest tests/unit/ -v` to verify all tests pass
+- [X] Create `tests/unit/test_trend_analyzer.py`
+- [X] Create `tests/unit/test_project_analyzer.py`
+- [X] Create `tests/unit/test_seo_checker.py`
+- [X] Create `tests/unit/test_markdown_validator.py`
+- [X] Run `pytest tests/unit/ -v` to verify all tests pass
 
 ---
 
 ## Phase 2: Agent Definitions (US1: 基本ブログ生成)
 
 ### T009 blog-writer.agent.md 作成
-- Create `.github/agents/blog-writer.agent.md` with YAML frontmatter
-- Define description, tools (read, search, execute, web, edit), user-invocable: true
-- Add SessionStart hook to start open_deep_research server
-- Add Stop hook to stop open_deep_research server
-- Write execution steps: input parsing → trend analysis → research → writing → quality check → output
+- [X] Create `.github/agents/blog-writer.agent.md` with YAML frontmatter
+- [X] Define description, tools (read, search, execute, web, edit), user-invocable: true
+- [X] Add SessionStart hook to start open_deep_research server
+- [X] Add Stop hook to stop open_deep_research server
+- [X] Write execution steps: input parsing → trend analysis → research → writing → quality check → output
 
 ### T010 blog-writer.prompt.md 作成
 - Create `.github/prompts/blog-writer.prompt.md`
