@@ -21,7 +21,7 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
   - Run `npm list -g markdownlint-cli` to verify markdownlint
   - Run `pip list | grep -E "pytrends|searchstack|website-seo-audit"` to verify pip packages
 
-- [ ] T003 既存リソースの確認
+- [X] T003 既存リソースの確認
   - Verify `.github/agents/blog-reviewer.agent.md` exists and is functional
   - Verify `.github/scripts/blog-reviewer/server.sh` works with `bash .github/scripts/blog-reviewer/server.sh start/stop`
 
