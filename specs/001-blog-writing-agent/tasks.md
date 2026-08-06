@@ -73,10 +73,10 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Write execution steps: input parsing → trend analysis → research → writing → quality check → output
 
 ### T010 blog-writer.prompt.md 作成
-- Create `.github/prompts/blog-writer.prompt.md`
-- Include style guide rules (tone, structure, Mermaid diagrams)
-- Include frontmatter template
-- Include writing guidelines
+- [X] Create `.github/prompts/blog-writer.prompt.md`
+- [X] Include style guide rules (tone, structure, Mermaid diagrams)
+- [X] Include frontmatter template
+- [X] Include writing guidelines
 
 ### T011 blog-style-guide.md 作成
 - Create `.github/styles/blog-style-guide.md`
