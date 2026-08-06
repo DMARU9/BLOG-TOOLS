@@ -30,10 +30,10 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 ## Phase 1: Foundational Tools
 
 ### T004 trend_analyzer.py 作成
-- Create `src/blog_writer/trend_analyzer.py`
-- Implement pytrends-based trend analysis with rate limiting (sleep 5s)
-- Return `TrendResult` with interest_over_time, related_queries, trend_score
-- Add CLI interface: `python -m blog_writer.trend_analyzer <topic>`
+- [X] Create `src/blog_writer/trend_analyzer.py`
+- [X] Implement pytrends-based trend analysis with rate limiting (sleep 5s)
+- [X] Return `TrendResult` with interest_over_time, related_queries, trend_score
+- [X] Add CLI interface: `python -m blog_writer.trend_analyzer <topic>`
 
 ### T005 project_analyzer.py 作成
 - Create `src/blog_writer/project_analyzer.py`
