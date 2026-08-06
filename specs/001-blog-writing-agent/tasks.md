@@ -120,20 +120,20 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Integrate project info into research results
 
 ### T017 blog-writer に補足情報処理追加
-- Update `.github/agents/blog-writer.agent.md`
-- Add input parsing for project_name, directory_path, detailed_spec
-- Pass supplementary info to blog-researcher sub-agent
-- Handle edge case: invalid directory path
+- [X] Update `.github/agents/blog-writer.agent.md`
+- [X] Add input parsing for project_name, directory_path, detailed_spec
+- [X] Pass supplementary info to blog-researcher sub-agent
+- [X] Handle edge case: invalid directory path
 
 ---
 
 ## Phase 4: User Story 3 (P2: 品質レポート)
 
 ### T018 品質レポート出力機能追加
-- Update `.github/agents/blog-quality-checker.agent.md`
-- Add report generation step with structured output
-- Include fact check results, format check results, SEO scores
-- Output report to stdout with clear formatting
+- [X] Update `.github/agents/blog-quality-checker.agent.md`
+- [X] Add report generation step with structured output
+- [X] Include fact check results, format check results, SEO scores
+- [X] Output report to stdout with clear formatting
 
 ### T019 blog-writer にレポート表示追加
 - Update `.github/agents/blog-writer.agent.md`
@@ -146,8 +146,8 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 ## Phase 5: Polish & Testing
 
 ### T020 エンドツーエンドテスト
-- Create `tests/integration/test_full_flow.py`
-- Test basic flow: topic → blog post generation
+- [X] Create `tests/integration/test_full_flow.py`
+- [X] Test basic flow: topic → blog post generation
 - Test supplementary info flow: topic + project_name → enriched blog post
 - Verify frontmatter validity, Mermaid diagram presence, SEO score
 
