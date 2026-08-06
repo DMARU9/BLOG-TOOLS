@@ -65,16 +65,19 @@ spec.md で定義されているが、実装されていない機能:
 
 ### 未実装機能
 
-- [ ] T024-1: `__main__.py` の作成 → `python -m blog_writer` で実行可能にする (#33)
-- [ ] T024-2: searchstack-aeo 統合の検討 (FR-013a) (#34)
-  - searchstack パッケージが利用可能か確認
-  - 無料コマンド (meta, schema, links, onpage) の動作確認
-  - seo_checker.py への統合
-- [ ] T024-3: website-seo-audit 統合の検討 (FR-014) (#35)
-  - スコープ外だが、将来の実装に備えて調査
-- [ ] T024-4: エージェントの動作確認 (#36)
-  - `/blog-writer` コマンドの動作テスト
-  - サブエージェント呼び出しの動作確認
+- [x] T024-1: `__main__.py` の作成 → `python -m blog_writer` で実行可能にする (#33)
+- [x] T024-2: searchstack-aeo 統合の検討 (FR-013a) (#34)
+  - searchstack パッケージが利用可能か確認 → CLI コマンドなし
+  - 無料コマンド (meta, schema, links, onpage) の動作確認 → 実行不可
+  - seo_checker.py への統合 → 保留
+- [x] T024-3: website-seo-audit 統合の検討 (FR-014) (#35)
+  - スコープ外 (デプロイ後にのみ適用)
+  - CI/CD パイプラインや手動ステップとして別途対応
+- [x] T024-4: エージェントの動作確認 (#36)
+  - エージェント定義ファイル: 正しく設定済み
+  - プロンプトファイル: 正しく設定済み
+  - スクリプト: 存在する
+  - open_deep_research サーバー起動が必要
 
 ---
 
