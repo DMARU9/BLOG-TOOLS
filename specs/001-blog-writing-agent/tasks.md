@@ -49,10 +49,10 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Add CLI interface: `python -m blog_writer.seo_checker <file>`
 
 ### T007 markdown_validator.py 作成
-- Create `src/blog_writer/markdown_validator.py`
-- Implement frontmatter schema validation
-- Implement markdownlint integration (subprocess call)
-- Add CLI interface: `python -m blog_writer.markdown_validator <file>`
+- [X] Create `src/blog_writer/markdown_validator.py`
+- [X] Implement frontmatter schema validation
+- [X] Implement markdownlint integration (subprocess call)
+- [X] Add CLI interface: `python -m blog_writer.markdown_validator <file>`
 
 ### T008 ツールアプリのユニットテスト作成
 - Create `tests/unit/test_trend_analyzer.py`
