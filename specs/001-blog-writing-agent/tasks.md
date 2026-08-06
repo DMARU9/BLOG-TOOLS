@@ -98,16 +98,16 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Include project/directory analysis instructions
 
 ### T014 blog-quality-checker.agent.md 作成
-- Create `.github/agents/blog-quality-checker.agent.md` as sub-agent (user-invocable: false)
-- Define quality check steps: fact check → format check → SEO check
-- Reference markdown_validator.py and seo_checker.py tools
-- Include searchstack-aeo command execution
+- [X] Create `.github/agents/blog-quality-checker.agent.md` as sub-agent (user-invocable: false)
+- [X] Define quality check steps: fact check → format check → SEO check
+- [X] Reference markdown_validator.py and seo_checker.py tools
+- [X] Include searchstack-aeo command execution
 
 ### T015 blog-quality-checker.prompt.md 作成
-- Create `.github/prompts/blog-quality-checker.prompt.md`
-- Include quality check instructions
-- Include SEO validation rules
-- Include report generation format
+- [X] Create `.github/prompts/blog-quality-checker.prompt.md`
+- [X] Include quality check instructions
+- [X] Include SEO validation rules
+- [X] Include report generation format
 
 ---
 
@@ -136,10 +136,10 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Output report to stdout with clear formatting
 
 ### T019 blog-writer にレポート表示追加
-- Update `.github/agents/blog-writer.agent.md`
-- Add final step to display quality report summary
-- Include pass/fail status for each check
-- Show SEO score and recommendations
+- [X] Update `.github/agents/blog-writer.agent.md`
+- [X] Add final step to display quality report summary
+- [X] Include pass/fail status for each check
+- [X] Show SEO score and recommendations
 
 ---
 
