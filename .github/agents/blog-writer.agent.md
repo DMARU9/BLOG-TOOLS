@@ -35,7 +35,7 @@ $ARGUMENTS
 ## 関連ファイル
 - **プロンプト**: `.github/prompts/blog-writer.prompt.md`
 - **スタイルガイド**: `.github/styles/blog-style-guide.md`
-- **ツール群**: `src/blog_writer/`
+- **ツール群**: `blog_writer/src/blog_writer/`
 
 ---
 
