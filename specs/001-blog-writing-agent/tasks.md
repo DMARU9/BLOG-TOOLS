@@ -152,9 +152,9 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - Verify frontmatter validity, Mermaid diagram presence, SEO score
 
 ### T021 ドキュメント更新
-- Update `quickstart.md` with usage examples
-- Update `data-model.md` with final entity definitions
-- Update `contracts/orchestrator-api.md` with agent interfaces
+- [X] Update `quickstart.md` with usage examples
+- [X] Update `data-model.md` with final entity definitions
+- [X] Update `contracts/orchestrator-api.md` with agent interfaces
 
 ### T022 最終検証
 - Run `pytest tests/ -v` to verify all tests pass

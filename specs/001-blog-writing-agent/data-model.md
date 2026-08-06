@@ -150,6 +150,67 @@
 
 ---
 
+### 10. SeoReport
+
+SEO チェック結果。
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| file_path | str | Yes | チェック対象ファイルパス |
+| title_score | float | Yes | タイトルスコア (0-100) |
+| description_score | float | Yes | 説明スコア (0-100) |
+| heading_score | float | Yes | 見出しスコア (0-100) |
+| alt_text_score | float | Yes | Alt テキストスコア (0-100) |
+| total_score | float | Yes | 総合スコア (0-100) |
+| issues | List[str] | Yes | 検出された問題一覧 |
+
+**Validation Rules**:
+- タイトル: 30-60文字
+- 説明: 120-160文字
+- H1 は 1 つのみ
+- 画像には alt テキスト必須
+
+---
+
+### 11. ValidationResult
+
+Markdown 検証結果。
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| file_path | str | Yes | チェック対象ファイルパス |
+| is_valid | bool | Yes | 全体の検証結果 |
+| frontmatter_valid | bool | Yes | Frontmatter 検証結果 |
+| markdownlint_valid | bool | Yes | Markdownlint 検証結果 |
+| errors | List[str] | Yes | エラーメッセージ一覧 |
+
+---
+
+### 12. FormatCheckResult
+
+フォーマット検証結果。
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| frontmatter_valid | bool | Yes | Frontmatter 検証結果 |
+| markdownlint_valid | bool | Yes | Markdownlint 検証結果 |
+| errors | List[str] | Yes | エラーメッセージ一覧 |
+
+---
+
+### 13. Issue
+
+検出された問題。
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| type | Literal["error", "warning", "info"] | Yes | 問題の重要度 |
+| message | str | Yes | 問題の説明 |
+| line | Optional[int] | No | 問題が発生した行番号 |
+| rule | Optional[str] | No | 関連するルール ID |
+
+---
+
 ### 10. FormatCheckResult
 
 フォーマット検証結果。
