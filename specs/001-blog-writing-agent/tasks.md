@@ -86,10 +86,10 @@ VS Code Copilot エージェント機能を活用したブログ作成フロー�
 - [X] Define SEO rules
 
 ### T012 blog-researcher.agent.md 作成
-- Create `.github/agents/blog-researcher.agent.md` as sub-agent (user-invocable: false)
-- Define research steps: trend analysis → open_deep_research API call
-- Reference `.github/scripts/blog-reviewer/server.sh` for server management
-- Add rate limiting for pytrends (sleep 5s between requests)
+- [X] Create `.github/agents/blog-researcher.agent.md` as sub-agent (user-invocable: false)
+- [X] Define research steps: trend analysis → open_deep_research API call
+- [X] Reference `.github/scripts/blog-reviewer/server.sh` for server management
+- [X] Add rate limiting for pytrends (sleep 5s between requests)
 
 ### T013 blog-researcher.prompt.md 作成
 - Create `.github/prompts/blog-researcher.prompt.md`
