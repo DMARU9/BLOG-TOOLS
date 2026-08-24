@@ -8,12 +8,10 @@ hooks:
     - type: command
       command: "bash /home/takumi/github/BLOG-TOOLS/.github/scripts/blog-reviewer/server.sh start"
       timeout: 60
-      description: "LangGraph サーバーを起動"
   Stop:
     - type: command
       command: "bash /home/takumi/github/BLOG-TOOLS/.github/scripts/blog-reviewer/server.sh stop"
       timeout: 10
-      description: "LangGraph サーバーを停止"
 ---
 
 # ブログレビュー
