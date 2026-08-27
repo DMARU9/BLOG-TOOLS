@@ -31,6 +31,30 @@ uv run python -m youtube_trend_researcher \
   --max-results 10 --format json --output out.json
 ```
 
+### オプション
+
+| オプション | 既定値 | 説明 |
+|-----------|--------|------|
+| `INSTRUCTION`（位置引数） | 必須 | 自然言語のリサーチ指示 |
+| `--format {markdown,json}` | `markdown` | 最終レポートの出力形式 |
+| `--max-results N` | `5` | 解析対象の動画件数（関連度順上位 N 件） |
+| `--output PATH` | 標準出力 | レポート書き込み先ファイル |
+| `--lang CODE` | `ja` | 字幕取得の優先言語 |
+| `--cache-dir PATH` | `cache/` | 中間成果物の永続化先 |
+
+### 出力チャネル
+
+- **stdout**: 最終レポートのみ（Markdown または JSON）
+- **stderr**: 進捗・ログ・エラー（FR-013）
+
+### 終了コード
+
+| コード | 意味 |
+|--------|------|
+| 0 | 成功 |
+| 1 | 実行時エラー（ネットワーク障害・LLM エラー等） |
+| 2 | 引数エラー |
+
 詳細は `specs/002-youtube-trend-researcher/contracts/cli.md` を参照。
 
 ## 進捗表示（FR-013）

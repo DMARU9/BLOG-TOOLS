@@ -28,6 +28,16 @@ __all__ = [
 ]
 
 
-def research(instruction: str, max_results: int | None = None, lang: str = "ja") -> ResearchReport:
+def research(
+    instruction: str,
+    max_results: int | None = None,
+    lang: str = "ja",
+    output_format: OutputFormat = OutputFormat.MARKDOWN,
+) -> ResearchReport:
     """指示から自律リサーチを実行し、ResearchReport を返す（US1 MVP エントリ）。"""
-    return run(instruction, max_results=max_results, transcript_language=lang)
+    return run(
+        instruction,
+        max_results=max_results,
+        transcript_language=lang,
+        output_format=output_format,
+    )

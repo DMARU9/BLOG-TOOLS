@@ -9,7 +9,7 @@ from typing import Any
 
 from langgraph.graph import END, StateGraph
 
-from youtube_trend_researcher.models import ResearchInstruction, ResearchReport
+from youtube_trend_researcher.models import OutputFormat, ResearchInstruction, ResearchReport
 from youtube_trend_researcher.nodes.compile_report import compile_report, render_json, render_markdown
 from youtube_trend_researcher.nodes.analyze_content import analyze_content
 from youtube_trend_researcher.nodes.extract_common import extract_common
@@ -67,13 +67,19 @@ def _timeout_handler(_signum: int, _frame: Any) -> None:
     raise _TimeoutError("execution timeout")
 
 
-def run(instruction_text: str, max_results: int | None = None, transcript_language: str = "ja") -> ResearchReport:
+def run(
+    instruction_text: str,
+    max_results: int | None = None,
+    transcript_language: str = "ja",
+    output_format: OutputFormat = OutputFormat.MARKDOWN,
+) -> ResearchReport:
     """自然言語指示から自律的にリサーチを実行し、ResearchReport を返す。
 
     Args:
         instruction_text: 自然言語のリサーチ指示。
         max_results: 件数上書き（任意）。
         transcript_language: 字幕優先言語。
+        output_format: 出力形式（markdown/json）。
 
     Returns:
         完成（またはタイムアウト時は部分的な）ResearchReport。
@@ -82,6 +88,7 @@ def run(instruction_text: str, max_results: int | None = None, transcript_langua
     instruction = ResearchInstruction(raw_text=instruction_text)
     if max_results is not None:
         instruction.max_results = max_results
+    instruction.output.format = output_format
 
     initial_state: State = {
         "instruction_raw": instruction_text,
