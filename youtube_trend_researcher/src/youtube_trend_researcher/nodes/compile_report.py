@@ -30,6 +30,10 @@ def compile_report(state: State) -> State:
     if published_after is not None:
         notes.append(f"投稿日フィルタ: {published_after.date()} 以降に公開された動画を対象")
 
+    # 候補 0 件時はその旨を記録（後続の字幕取得・要約はスキップ済み）
+    if not candidates:
+        notes.append("該当する動画が見つかりませんでした（検索クエリまたは期間フィルタの条件に一致する動画なし）。")
+
     sources = [c.url for c in candidates if c.url]
 
     report = ResearchReport(

@@ -38,7 +38,9 @@ def search_videos(
     ydl_opts = {
         "quiet": True,
         "no_warnings": True,
-        "extract_flat": True,
+        # extract_flat を False にして upload_date 等のメタデータを取得する。
+        # flat のままだと upload_date が None になり、期間フィルタで全件除外される。
+        "extract_flat": False,
         "skip_download": True,
         "default_search": f"ytsearch{fetch_count}",
         "dump_single_json": True,
@@ -55,8 +57,9 @@ def search_videos(
         video_id = entry.get("id") or ""
         url = entry.get("url") or entry.get("webpage_url") or f"https://www.youtube.com/watch?v={video_id}"
         published_at = _parse_upload_date(entry.get("upload_date"))
-        # 期間フィルタ: published_after より古い動画は除外
-        if published_after is not None and (published_at is None or published_at < published_after):
+        # 期間フィルタ: published_after より古い動画は除外。
+        # ただしメタデータ未取得（published_at が None）の場合は誤除外を防ぐため通す。
+        if published_after is not None and published_at is not None and published_at < published_after:
             continue
         candidates.append(
             VideoCandidate(

@@ -40,13 +40,24 @@ def build_graph() -> Any:
     graph.set_entry_point("parse_instruction")
     graph.add_edge("parse_instruction", "plan_search")
     graph.add_edge("plan_search", "search_videos")
-    graph.add_edge("search_videos", "fetch_transcripts")
+    # 候補が 0 件なら字幕取得・要約・共通ネタ抽出をスキップして直接 compile_report へ
+    graph.add_conditional_edges(
+        "search_videos",
+        _route_after_search,
+        {"skip": "compile_report", "continue": "fetch_transcripts"},
+    )
     graph.add_edge("fetch_transcripts", "analyze_content")
     graph.add_edge("analyze_content", "extract_common")
     graph.add_edge("extract_common", "compile_report")
     graph.add_edge("compile_report", END)
 
     return graph.compile()
+
+
+def _route_after_search(state: State) -> str:
+    """search_videos 直後のルーティング: 候補がなければ後続処理をスキップ。"""
+    candidates = state.get("candidates", [])
+    return "skip" if not candidates else "continue"
 
 
 def _build_partial_report(instruction: ResearchInstruction, state: dict[str, Any]) -> ResearchReport:
