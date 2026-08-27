@@ -27,6 +27,7 @@ class ResearchInstruction(BaseModel):
     topic: str = ""
     max_results: int = 5
     output: OutputSpec = Field(default_factory=OutputSpec)
+    published_after: datetime | None = None
 
 
 class VideoCandidate(BaseModel):

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 from youtube_trend_researcher.config import Config
@@ -26,6 +27,11 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--max-results", type=int, default=None, help="解析対象件数（既定 5）")
     parser.add_argument("--lang", default=None, help="字幕取得の優先言語（既定: ja）")
+    parser.add_argument(
+        "--since",
+        default=None,
+        help="投稿日下限（YYYY-MM-DD）。この日以降に公開された動画のみ対象（自然言語の「半年以内」等も可）",
+    )
     parser.add_argument("--cache-dir", default=None, help="中間成果物の永続化先（既定: cache/）")
     return parser.parse_args(argv)
 
@@ -45,12 +51,22 @@ def main(argv: list[str] | None = None) -> int:
     # 出力形式を instruction.output に反映（render_report で使用）
     output_format = OutputFormat.JSON if args.format == "json" else OutputFormat.MARKDOWN
 
+    # 投稿日下限（--since YYYY-MM-DD）
+    since: datetime | None = None
+    if args.since:
+        try:
+            since = datetime.strptime(args.since, "%Y-%m-%d").replace(tzinfo=UTC)
+        except ValueError:
+            print(f"[エラー] --since は YYYY-MM-DD 形式で指定してください: {args.since}", file=sys.stderr, flush=True)
+            return 2
+
     try:
         report = run(
             args.instruction,
             max_results=args.max_results,
             transcript_language=lang,
             output_format=output_format,
+            since=since,
         )
     except Exception as exc:  # noqa: BLE001 - FR-011: すべての実行時エラーをユーザーに通知
         print(f"[エラー] リサーチ実行中に問題が発生しました: {exc}", file=sys.stderr, flush=True)

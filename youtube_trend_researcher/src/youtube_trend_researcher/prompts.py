@@ -12,6 +12,9 @@ PARSE_INSTRUCTION_PROMPT = """\
   "output_format": "markdown" または "json"
 }
 
+期間指定（「半年以内」「3ヶ月以内」「1年以内」「今年」「2025-01-01以降」等）があれば
+topic に含めて要約してください（published_after は CLI 側で別途抽出します）。
+
 ユーザー指示:
 {instruction}
 """

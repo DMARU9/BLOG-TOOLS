@@ -25,6 +25,11 @@ def compile_report(state: State) -> State:
     common_themes = state.get("common_themes", [])
     notes = list(state.get("notes", []))
 
+    # 期間フィルタ条件を notes に記録
+    published_after = instruction.published_after
+    if published_after is not None:
+        notes.append(f"投稿日フィルタ: {published_after.date()} 以降に公開された動画を対象")
+
     sources = [c.url for c in candidates if c.url]
 
     report = ResearchReport(

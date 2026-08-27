@@ -22,8 +22,9 @@ def search_videos_node(state: State) -> State:
     instruction = state["instruction"]
     query = state.get("search_query", "")
     max_results = instruction.max_results or 5
+    published_after = instruction.published_after
 
-    candidates = search_videos(query, max_results=max_results)
+    candidates = search_videos(query, max_results=max_results, published_after=published_after)
 
     emitter.emit(3, NODE_SEARCH_VIDEOS, "完了", detail=f"{len(candidates)} 件を選定")
-    return {"candidates": candidates}
+    return {"candidates": candidates, "published_after": published_after}

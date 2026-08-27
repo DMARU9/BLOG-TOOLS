@@ -93,7 +93,7 @@ def patched_pipeline():
         side_effect=_FakeModel,
     ), mock.patch(
         "youtube_trend_researcher.nodes.search_videos.search_videos",
-        side_effect=lambda q, max_results=5: _fake_candidates(max_results),
+        side_effect=lambda q, max_results=5, published_after=None: _fake_candidates(max_results),
     ), mock.patch(
         "youtube_trend_researcher.nodes.fetch_transcripts.fetch_transcript",
         side_effect=lambda vid, language="ja": Transcript(

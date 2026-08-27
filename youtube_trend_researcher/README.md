@@ -29,6 +29,14 @@ uv run python -m youtube_trend_researcher \
 uv run python -m youtube_trend_researcher \
   "機械学習チュートリアルを参考にブログを書きたい" \
   --max-results 10 --format json --output out.json
+
+# 投稿日で絞り込み（明示指定）
+uv run python -m youtube_trend_researcher \
+  "機械学習 入門" --since 2026-02-27 --output recent.md
+
+# 投稿日で絞り込み（自然言語でも可: 「半年以内」「3ヶ月以内」「1年以内」「今年」等）
+uv run python -m youtube_trend_researcher \
+  "半年以内に公開された機械学習の基礎動画" --max-results 3 --output recent.md
 ```
 
 ### オプション
@@ -40,6 +48,7 @@ uv run python -m youtube_trend_researcher \
 | `--max-results N` | `5` | 解析対象の動画件数（関連度順上位 N 件） |
 | `--output PATH` | 標準出力 | レポート書き込み先ファイル |
 | `--lang CODE` | `ja` | 字幕取得の優先言語 |
+| `--since YYYY-MM-DD` | なし | 投稿日下限（この日以降に公開された動画のみ対象） |
 | `--cache-dir PATH` | `cache/` | 中間成果物の永続化先 |
 
 ### 出力チャネル

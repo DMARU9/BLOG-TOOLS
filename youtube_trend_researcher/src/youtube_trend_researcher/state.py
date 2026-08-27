@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TypedDict
 
 from youtube_trend_researcher.models import (
     AnalysisFinding,
     CommonTheme,
+    OutputFormat,
     ResearchInstruction,
     ResearchReport,
     Transcript,
@@ -24,6 +26,9 @@ class State(TypedDict, total=False):
     instruction: ResearchInstruction
     instruction_raw: str
     search_query: str
+    published_after: datetime | None
+    max_results: int
+    output_format: OutputFormat
     candidates: list[VideoCandidate]
     transcripts: list[Transcript]
     analyses: list[AnalysisFinding]

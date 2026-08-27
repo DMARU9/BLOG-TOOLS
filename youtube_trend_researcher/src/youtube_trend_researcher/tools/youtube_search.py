@@ -19,27 +19,33 @@ def _parse_upload_date(raw: str | None) -> datetime | None:
         return None
 
 
-def search_videos(query: str, max_results: int = 5) -> list[VideoCandidate]:
+def search_videos(
+    query: str, max_results: int = 5, published_after: datetime | None = None
+) -> list[VideoCandidate]:
     """ytsearchN: で単一検索し、関連度順上位 N 件を VideoCandidate に変換する。
 
     Args:
         query: 検索クエリ（plan_search が生成）。
         max_results: 取得件数（既定 5）。
+        published_after: 投稿日下限（任意）。指定時は期間内の動画のみを返す。
 
     Returns:
         関連度順の VideoCandidate リスト。
     """
+    # 期間フィルタ指定時は過剰取得し、投稿日で絞り込む（yt-dlp に期間フィルタなし）
+    fetch_count = max_results if published_after is None else max(max_results * 3, max_results + 10)
+
     ydl_opts = {
         "quiet": True,
         "no_warnings": True,
         "extract_flat": True,
         "skip_download": True,
-        "default_search": f"ytsearch{max_results}",
+        "default_search": f"ytsearch{fetch_count}",
         "dump_single_json": True,
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # type: ignore[call-arg]
-        info = ydl.extract_info(f"ytsearch{max_results}:{query}", download=False)
+        info = ydl.extract_info(f"ytsearch{fetch_count}:{query}", download=False)
 
     entries = info.get("entries", []) if isinstance(info, dict) else []
     candidates: list[VideoCandidate] = []
@@ -48,6 +54,10 @@ def search_videos(query: str, max_results: int = 5) -> list[VideoCandidate]:
             continue
         video_id = entry.get("id") or ""
         url = entry.get("url") or entry.get("webpage_url") or f"https://www.youtube.com/watch?v={video_id}"
+        published_at = _parse_upload_date(entry.get("upload_date"))
+        # 期間フィルタ: published_after より古い動画は除外
+        if published_after is not None and (published_at is None or published_at < published_after):
+            continue
         candidates.append(
             VideoCandidate(
                 video_id=video_id or "",
@@ -55,10 +65,10 @@ def search_videos(query: str, max_results: int = 5) -> list[VideoCandidate]:
                 url=url,
                 channel_id=entry.get("channel_id") or "",
                 channel_title=entry.get("channel") or entry.get("uploader") or "",
-                published_at=_parse_upload_date(entry.get("upload_date")),
+                published_at=published_at,
                 view_count=entry.get("view_count"),
                 like_count=entry.get("like_count"),
-                relevance_rank=rank,
+                relevance_rank=len(candidates) + 1,
             )
         )
         if len(candidates) >= max_results:

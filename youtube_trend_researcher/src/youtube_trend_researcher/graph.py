@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import signal
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from langgraph.graph import END, StateGraph
@@ -75,6 +75,7 @@ def run(
     max_results: int | None = None,
     transcript_language: str = "ja",
     output_format: OutputFormat = OutputFormat.MARKDOWN,
+    since: datetime | None = None,
 ) -> ResearchReport:
     """自然言語指示から自律的にリサーチを実行し、ResearchReport を返す。
 
@@ -83,6 +84,7 @@ def run(
         max_results: 件数上書き（任意）。
         transcript_language: 字幕優先言語。
         output_format: 出力形式（markdown/json）。
+        since: 投稿日下限（任意、CLI --since 用）。
 
     Returns:
         完成（またはタイムアウト時は部分的な）ResearchReport。
@@ -92,11 +94,15 @@ def run(
     if max_results is not None:
         instruction.max_results = max_results
     instruction.output.format = output_format
+    if since is not None:
+        instruction.published_after = since
 
     initial_state: State = {
         "instruction_raw": instruction_text,
-        "instruction": instruction,
         "transcript_language": transcript_language,
+        "published_after": instruction.published_after,
+        "max_results": instruction.max_results,
+        "output_format": instruction.output.format,
     }
 
     # SIGALRM による全体時間監視（Linux のみ）
