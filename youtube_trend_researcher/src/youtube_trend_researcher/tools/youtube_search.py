@@ -46,15 +46,15 @@ def search_videos(query: str, max_results: int = 5) -> list[VideoCandidate]:
     for rank, entry in enumerate(entries, start=1):
         if not entry:
             continue
-        video_id = entry.get("id", "")
+        video_id = entry.get("id") or ""
         url = entry.get("url") or entry.get("webpage_url") or f"https://www.youtube.com/watch?v={video_id}"
         candidates.append(
             VideoCandidate(
-                video_id=video_id,
-                title=entry.get("title", ""),
+                video_id=video_id or "",
+                title=entry.get("title") or "",
                 url=url,
-                channel_id=entry.get("channel_id", ""),
-                channel_title=entry.get("channel", "") or entry.get("uploader", ""),
+                channel_id=entry.get("channel_id") or "",
+                channel_title=entry.get("channel") or entry.get("uploader") or "",
                 published_at=_parse_upload_date(entry.get("upload_date")),
                 view_count=entry.get("view_count"),
                 like_count=entry.get("like_count"),
