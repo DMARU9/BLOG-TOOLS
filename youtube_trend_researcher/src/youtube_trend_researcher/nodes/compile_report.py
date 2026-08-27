@@ -74,19 +74,42 @@ def render_markdown(report: ResearchReport) -> str:
     for c in report.candidates:
         a = analyses_by_id.get(c.video_id)
         lines.append(f"### {c.relevance_rank}. {c.title}")
+        # メタデータを行ブロックで提示（文脈把握を助ける）
+        meta_bits = [f"チャンネル: {c.channel_title}" if c.channel_title else None,
+                     f"再生数: {c.view_count:,}" if c.view_count is not None else None,
+                     f"公開日: {c.published_at.date()}" if c.published_at is not None else None]
+        meta_line = " ｜ ".join(b for b in meta_bits if b)
+        if meta_line:
+            lines.append(f"> {meta_line}")
+            lines.append("")
         if a:
-            lines.append(f"- 要約: {a.summary}")
-            if a.key_points:
-                lines.append("- ブログで取り上げられそうなポイント:")
-                for kp in a.key_points:
-                    lines.append(f"  - {kp}")
+            # 概要ブロック
+            lines.append("**概要**")
+            lines.append("")
+            lines.append(a.summary)
+            lines.append("")
+            # ブログの活用アイデア表
+            if a.angles:
+                lines.append("**ブログの活用アイデア**")
+                lines.append("")
+                lines.append("| 切り口 | 読者への価値 | 拾えるキーフレーズ |")
+                lines.append("|--------|--------------|---------------------|")
+                for ang in a.angles:
+                    angle = ang.angle.replace("\n", " ")
+                    value = ang.value.replace("\n", " ")
+                    phrase = ang.key_phrase.replace("\n", " ")
+                    lines.append(f"| {angle} | {value} | {phrase} |")
+                lines.append("")
+            # そのまま使える引用
             if a.evidence:
-                lines.append("- 根拠:")
+                lines.append("**そのまま使える引用**")
+                lines.append("")
                 for ev in a.evidence:
-                    lines.append(f"  - {ev}")
+                    lines.append(f"- {ev}")
+                lines.append("")
         else:
             lines.append("- 要約: （解析なし）")
-        lines.append("")
+            lines.append("")
 
     # 共通ネタ表
     lines.append("## 共通ネタ（表）")

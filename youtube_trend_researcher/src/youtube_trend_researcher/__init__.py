@@ -3,6 +3,7 @@
 from youtube_trend_researcher.graph import render_report, run
 from youtube_trend_researcher.models import (
     AnalysisFinding,
+    BlogAngle,
     CommonTheme,
     OutputFormat,
     OutputSpec,
@@ -15,6 +16,7 @@ from youtube_trend_researcher.models import (
 
 __all__ = [
     "AnalysisFinding",
+    "BlogAngle",
     "CommonTheme",
     "OutputFormat",
     "OutputSpec",

@@ -68,7 +68,15 @@ class _FakeModel:
             return _R("Claude Code 会社運用 解説")
         if "要約" in prompt or "ブログ" in prompt:
             return _R(
-                "## 要約\n要約です\n\n## ブログで取り上げられそうなポイント\n- ポイントA\n- ポイントB\n\n## 根拠\n- 根拠1"
+                "## 概要\n要約です。ブログでどう扱えるかを詳しく説明します。\n\n"
+                "## ブログの活用アイデア\n"
+                "| 切り口 | 読者への価値 | 拾えるキーフレーズ |\n"
+                "|--------|--------------|---------------------|\n"
+                "| ポイントA | 価値A | 「キーフレーズA」 |\n"
+                "| ポイントB | 価値B | 「キーフレーズB」 |\n\n"
+                "## そのまま使える引用\n"
+                "- 「抜粋1」（文脈1）\n"
+                "- 「抜粋2」（文脈2）"
             )
         if "共通" in prompt:
             return _R(
@@ -120,6 +128,11 @@ def test_scenario_a_default_markdown(patched_pipeline):
     md = render_report(report)
     assert "選定動画リスト" in md
     assert "共通ネタ" in md
+    # 新フォーマットの確認（概要ブロック・活用アイデア表・そのまま使える引用）
+    assert "**概要**" in md
+    assert "**ブログの活用アイデア**" in md
+    assert "| 切り口 | 読者への価値 | 拾えるキーフレーズ |" in md
+    assert "**そのまま使える引用**" in md
 
 
 # --- Scenario B: 件数指定 10 件・JSON ---

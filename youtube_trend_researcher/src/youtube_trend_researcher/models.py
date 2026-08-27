@@ -58,11 +58,20 @@ class Transcript(BaseModel):
     source: TranscriptSource = TranscriptSource.AUTOMATIC_CAPTION
 
 
+class BlogAngle(BaseModel):
+    """ブログの活用アイデア（切り口 × 読者への価値 × 拾えるキーフレーズ）。"""
+
+    angle: str = ""           # 切り口（記事で扱う角度）
+    value: str = ""           # 読者への価値（なぜ書く価値があるか）
+    key_phrase: str = ""      # 動画内の代表的なキーフレーズ（引用）
+
+
 class AnalysisFinding(BaseModel):
     """個別動画のブログ執筆向け要約。"""
 
     video_id: str
     summary: str = ""
+    angles: list[BlogAngle] = Field(default_factory=list)
     key_points: list[str] = Field(default_factory=list)
     evidence: list[str] = Field(default_factory=list)
 
