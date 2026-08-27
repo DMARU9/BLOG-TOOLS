@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from youtube_trend_researcher.prompts import PLAN_SEARCH_PROMPT
 from youtube_trend_researcher.progress import NODE_PLAN_SEARCH, make_emitter
+from youtube_trend_researcher.prompts import PLAN_SEARCH_PROMPT
 from youtube_trend_researcher.state import State
 from youtube_trend_researcher.tools.llm import build_model
 

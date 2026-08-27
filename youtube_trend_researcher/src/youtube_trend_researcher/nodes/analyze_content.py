@@ -5,8 +5,8 @@ from __future__ import annotations
 import asyncio
 
 from youtube_trend_researcher.models import AnalysisFinding, VideoCandidate
-from youtube_trend_researcher.prompts import ANALYZE_CONTENT_PROMPT
 from youtube_trend_researcher.progress import NODE_ANALYZE_CONTENT, make_emitter
+from youtube_trend_researcher.prompts import ANALYZE_CONTENT_PROMPT
 from youtube_trend_researcher.state import State
 from youtube_trend_researcher.tools.llm import build_model
 from youtube_trend_researcher.tools.parse import extract_list_items, extract_section
@@ -29,6 +29,13 @@ async def _analyze_one(candidate: VideoCandidate, transcript_text: str) -> Analy
     text = result.content if hasattr(result, "content") else str(result)
 
     summary = extract_section(text, "要約")
+    if not summary.strip():
+        # フォールバック: 要約セクションが取れない場合は冒頭の段落を利用
+        for para in text.split("\n\n"):
+            para = para.strip()
+            if para and not para.startswith("#"):
+                summary = para
+                break
     key_points = extract_list_items(extract_section(text, "ブログで取り上げられそうなポイント"))
     evidence = extract_list_items(extract_section(text, "根拠"))
 

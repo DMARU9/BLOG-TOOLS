@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from youtube_trend_researcher.models import OutputFormat, ResearchReport
+from youtube_trend_researcher.models import ResearchReport
 from youtube_trend_researcher.progress import NODE_COMPILE_REPORT, make_emitter
 from youtube_trend_researcher.state import State
 

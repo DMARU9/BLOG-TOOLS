@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
-import asyncio
 import signal
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 from langgraph.graph import END, StateGraph
 
 from youtube_trend_researcher.models import OutputFormat, ResearchInstruction, ResearchReport
-from youtube_trend_researcher.nodes.compile_report import compile_report, render_json, render_markdown
 from youtube_trend_researcher.nodes.analyze_content import analyze_content
+from youtube_trend_researcher.nodes.compile_report import (
+    compile_report,
+    render_json,
+    render_markdown,
+)
 from youtube_trend_researcher.nodes.extract_common import extract_common
 from youtube_trend_researcher.nodes.fetch_transcripts import fetch_transcripts
 from youtube_trend_researcher.nodes.parse_instruction import parse_instruction
@@ -46,7 +49,7 @@ def build_graph() -> Any:
     return graph.compile()
 
 
-def _build_partial_report(instruction: ResearchInstruction, state: State) -> ResearchReport:
+def _build_partial_report(instruction: ResearchInstruction, state: dict[str, Any]) -> ResearchReport:
     """タイムアウト時などの途中結果から部分的なレポートを構築（SC-005）。"""
     candidates = state.get("candidates", [])
     return ResearchReport(

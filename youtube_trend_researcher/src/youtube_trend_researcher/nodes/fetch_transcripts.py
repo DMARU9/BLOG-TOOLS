@@ -21,7 +21,7 @@ def fetch_transcripts(state: State) -> State:
     emitter.emit(4, NODE_FETCH_TRANSCRIPTS, "開始")
 
     candidates = state.get("candidates", [])
-    language = state.get("transcript_language", "ja")
+    language = str(state.get("transcript_language", "ja") or "ja")
     transcripts: list[Transcript] = []
     notes: list[str] = list(state.get("notes", []))
 

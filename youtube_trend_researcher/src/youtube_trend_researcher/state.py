@@ -22,6 +22,7 @@ class State(TypedDict, total=False):
     """
 
     instruction: ResearchInstruction
+    instruction_raw: str
     search_query: str
     candidates: list[VideoCandidate]
     transcripts: list[Transcript]
@@ -29,3 +30,4 @@ class State(TypedDict, total=False):
     common_themes: list[CommonTheme]
     report: ResearchReport
     notes: list[str]
+    transcript_language: str

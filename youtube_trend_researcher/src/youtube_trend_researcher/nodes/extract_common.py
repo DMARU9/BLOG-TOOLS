@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import re
+
 from youtube_trend_researcher.models import AnalysisFinding, CommonTheme
-from youtube_trend_researcher.prompts import EXTRACT_COMMON_PROMPT
 from youtube_trend_researcher.progress import NODE_EXTRACT_COMMON, make_emitter
+from youtube_trend_researcher.prompts import EXTRACT_COMMON_PROMPT
 from youtube_trend_researcher.state import State
 from youtube_trend_researcher.tools.llm import build_model
 from youtube_trend_researcher.tools.parse import extract_list_items, extract_section
@@ -46,40 +48,47 @@ def extract_common(state: State) -> State:
 
 
 def _parse_themes(text: str, video_ids: list[str]) -> list[CommonTheme]:
-    """Markdown の「### テーマ名」セクションを CommonTheme に変換。"""
+    """Markdown の「### テーマ名」/「#### N. テーマ」セクションを CommonTheme に変換。
+
+    LLM の出力スタイル（### または #### の見出し）の揺れを吸収する。
+    """
     themes: list[CommonTheme] = []
-    # テーマ区切り: ### で始まる行
-    sections = []
+    # 見出し行（### / #### 等）で区切る
+    sections: list[list[str]] = []
     current: list[str] = []
+    heading_re = re.compile(r"^#{3,4}\s+(.*)$")
     for line in text.splitlines():
-        if line.startswith("### ") and current:
-            sections.append("\n".join(current))
+        m = heading_re.match(line)
+        if m:
+            if current:
+                sections.append(current)
             current = [line]
         else:
             current.append(line)
     if current:
-        sections.append("\n".join(current))
+        sections.append(current)
 
+    idx = 0
     for sec in sections:
-        if "### " not in sec:
+        heading_line = sec[0]
+        hm = heading_re.match(heading_line)
+        if not hm:
             continue
-        # 最初の ### を行ごと抽出
-        theme_name = ""
-        body_lines: list[str] = []
-        for line in sec.splitlines():
-            if line.startswith("### ") and not theme_name:
-                theme_name = line[4:].strip()
-            else:
-                body_lines.append(line)
-        body = "\n".join(body_lines)
-        if not theme_name or "特筆" in theme_name:
+        theme_name = hm.group(1).strip()
+        # テンプレートのプレースホルダや総括見出しはスキップ
+        if theme_name in ("共通テーマ", "テーマ", "テーマ名") or "特筆" in theme_name:
             continue
+        body = "\n".join(sec[1:]).strip()
+        if not body and theme_name:
+            # 見出しだけの場合はそのまま説明とする
+            body = theme_name
+        idx += 1
         desc = extract_section(body, "説明") or body
         supporting = video_ids  # 簡易: 全動画を該当とみなす（詳細な紐付けは将来拡張）
-        quotes = extract_list_items(extract_section(body, "代表抜粋"))
+        quotes = extract_list_items(extract_section(body, "代表抜粋")) or extract_list_items(body)
         themes.append(
             CommonTheme(
-                theme=theme_name,
+                theme=theme_name or f"共通テーマ{idx}",
                 description=desc,
                 supporting_video_ids=supporting,
                 example_quotes=quotes,

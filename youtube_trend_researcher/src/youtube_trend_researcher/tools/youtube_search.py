@@ -2,20 +2,19 @@
 
 from __future__ import annotations
 
-import json
-from datetime import datetime
+from datetime import UTC, datetime
 
-import yt_dlp
+import yt_dlp  # type: ignore[import-untyped]
 
 from youtube_trend_researcher.models import VideoCandidate
 
 
 def _parse_upload_date(raw: str | None) -> datetime | None:
-    """yt-dlp の upload_date (YYYYMMDD) を datetime に変換。"""
+    """yt-dlp の upload_date (YYYYMMDD) を UTC datetime に変換。"""
     if not raw or len(raw) != 8:
         return None
     try:
-        return datetime.strptime(raw, "%Y%m%d")
+        return datetime.strptime(raw, "%Y%m%d").replace(tzinfo=UTC)
     except ValueError:
         return None
 

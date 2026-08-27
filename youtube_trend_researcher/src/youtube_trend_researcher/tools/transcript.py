@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import logging
+
 from youtube_trend_researcher.models import Transcript, TranscriptSource
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_transcript(video_id: str, language: str = "ja") -> Transcript:
@@ -18,7 +22,7 @@ def fetch_transcript(video_id: str, language: str = "ja") -> Transcript:
     Returns:
         Transcript（source は caption / automatic_caption）。
     """
-    import yt_dlp
+    import yt_dlp  # type: ignore[import-untyped]
 
     url = f"https://www.youtube.com/watch?v={video_id}"
     ydl_opts: dict = {
@@ -28,14 +32,14 @@ def fetch_transcript(video_id: str, language: str = "ja") -> Transcript:
         "writesubtitles": True,
         "writeautomaticsub": True,
         "subtitleslangs": [language],
-        "skip_download": True,
         "getcomments": False,
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # type: ignore[call-arg]
             info = ydl.extract_info(url, download=False)
-    except Exception:
+    except yt_dlp.DownloadError as exc:
+        logger.warning("字幕取得に失敗しました（video_id=%s）: %s", video_id, exc)
         return Transcript(
             video_id=video_id,
             language=language,
@@ -68,7 +72,7 @@ def fetch_transcript(video_id: str, language: str = "ja") -> Transcript:
 
 def _extract_text(url: str, formats: list[dict]) -> str:
     """字幕フォーマット一覧から JSON3 等のテキストを抽出する。"""
-    import yt_dlp
+    import yt_dlp  # type: ignore[import-untyped]
 
     # json3 / srv3 / vtt 等から取得
     preferred = [f for f in formats if f.get("ext") in ("json3", "srv3", "vtt", "ttml")]
@@ -84,6 +88,6 @@ def _extract_text(url: str, formats: list[dict]) -> str:
             events = sub_info.get("events", [])
             parts = [e.get("segs", [{}])[0].get("utf8", "") for e in events if e.get("segs")]
             return "".join(parts)
-    except Exception:
-        pass
+    except yt_dlp.DownloadError as exc:
+        logger.warning("字幕テキスト抽出に失敗しました: %s", exc)
     return ""

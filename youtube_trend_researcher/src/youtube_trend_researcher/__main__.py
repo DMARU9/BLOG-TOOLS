@@ -8,7 +8,7 @@ from pathlib import Path
 
 from youtube_trend_researcher.config import Config
 from youtube_trend_researcher.graph import render_report, run
-from youtube_trend_researcher.models import OutputFormat, ResearchInstruction
+from youtube_trend_researcher.models import OutputFormat
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -50,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
             transcript_language=lang,
             output_format=output_format,
         )
-    except Exception as exc:  # FR-011: 実行時エラー
+    except Exception as exc:  # noqa: BLE001 - FR-011: すべての実行時エラーをユーザーに通知
         print(f"[エラー] リサーチ実行中に問題が発生しました: {exc}", file=sys.stderr, flush=True)
         return 1
 

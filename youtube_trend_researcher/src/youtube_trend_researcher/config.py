@@ -32,7 +32,7 @@ class Config(BaseModel):
     max_retries: int = Field(default=3)
 
     @classmethod
-    def load(cls, *, cache_dir: str | None = None, max_results: int | None = None) -> "Config":
+    def load(cls, *, cache_dir: str | None = None, max_results: int | None = None) -> Config:
         """環境変数／.env から設定を読み込む。
 
         Args:

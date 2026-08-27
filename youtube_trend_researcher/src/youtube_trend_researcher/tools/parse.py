@@ -35,7 +35,7 @@ def extract_list_items(text: str, marker: str = "-") -> list[str]:
     items: list[str] = []
     for line in text.splitlines():
         line = line.strip()
-        m = re.match(rf"^(?:\{marker}\s+|\d+\.\s+)(.*)$", line)
+        m = re.match(rf"^(?:{marker}\s+|\d+\.\s+)(.*)$", line)
         if m:
             items.append(m.group(1).strip())
     return items
@@ -45,12 +45,18 @@ def extract_section(text: str, heading: str) -> str:
     """Markdown から指定見出し直下の本文を抽出する。"""
     if not text:
         return ""
-    pattern = re.compile(rf"^#{1,6}\s*{re.escape(heading)}\s*$", re.MULTILINE)
-    m = pattern.search(text)
-    if not m:
-        return ""
-    start = m.end()
-    # 次の見出しまで
-    next_heading = re.compile(r"^#{1,6}\s+", re.MULTILINE).search(text, start)
-    end = next_heading.start() if next_heading else len(text)
-    return text[start:end].strip()
+    lines = text.splitlines()
+    collected: list[str] = []
+    capturing = False
+    # f-string 内の量指定子 {1,6} は {{ }} でエスケープ
+    heading_re = re.compile(rf"^#{{1,6}}\s+{re.escape(heading)}\s*$")
+    for line in lines:
+        if heading_re.match(line):
+            capturing = True
+            continue
+        if capturing and re.match(r"^#{1,6}\s+", line):
+            # 次の見出しで終了
+            break
+        if capturing:
+            collected.append(line)
+    return "\n".join(collected).strip()
