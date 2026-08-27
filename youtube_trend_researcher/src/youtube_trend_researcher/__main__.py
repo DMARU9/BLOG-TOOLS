@@ -34,8 +34,10 @@ def main(argv: list[str] | None = None) -> int:
     """CLI メイン。戻り値は終了コード（0/1/2）。"""
     try:
         args = _parse_args(argv)
-    except SystemExit:
-        return 2  # 引数エラー
+    except SystemExit as exc:
+        if exc.code == 0:
+            raise  # --help 等: そのまま終了コード 0 で通す（T033）
+        return 2  # 引数エラー（code != 0）
 
     config = Config.load(cache_dir=args.cache_dir, max_results=args.max_results)
     lang = args.lang or config.transcript_language
