@@ -1,74 +1,62 @@
 # Research: YouTube Trend Researcher
 
-**Created**: 2026-08-26
+**Created**: 2026-08-26 (updated 2026-08-27)
 **Feature**: [spec.md](./spec.md)
 **Plan**: [plan.md](./plan.md)
 
-Phase 0 の調査成果。仕様の Technical Context にあった未確定事項を解決し、技術選定の根拠を記録する。
+Phase 0 の調査成果。v1 簡素化（2026-08-27）= 「トレンド判定なし・単一検索・Whisper なし・CLI のみ・ブログ参考向け要約」に基づき再整理。
 
 ---
 
-## R-1. データ取得 OSS の選定（yt-dlp 主体／YouTube Data API はオプション）
+## R-1. データ取得 OSS の選定（yt-dlp 主体／YouTube Data API は利用しない）
 
-**背景（YouTube Data API の制限）**:
-- 日次クォータ 10,000 ユニット。`search.list` は 100 ユニット/回のため 1 日 ~100 回検索が上限。
-- 検索結果は関連度順で、**視聴回数・登録者数での並べ替え不可**。
-- 登録者数取得には別途 `channels.list` が必要（追加コスト）。
-- API キー申請とクォータ増額はレビュー必須で運用負荷大。
+**背景**:
+- ユーザーが「YouTube Data API は利用しない」と指定（2026-08-27 第5ラウンド）。API キー・クォータ管理は一切不要。
+- 検索結果は関連度順で返るため、トレンド判定・velocity 絞り込みは **行わない**（上位 N 件をそのまま採用）。
 
-**Decision**: 検索・統計・チャンネル情報は **yt-dlp を主体**として取得し、YouTube Data API v3 は「高精度な登録者数が必要な場合のオプション」に降格する。
+**Decision**: 検索・統計・字幕取得は **すべて yt-dlp で行う**。YouTube Data API v3 は **利用しない**。字幕は yt-dlp の自動翻訳字幕（自動生成キャプションの翻訳）も取得できるため、字幕欠損は原則として起こらない。
+
 - **yt-dlp**（主体・API キー/クォータ不要）:
-  - 検索: `ytsearchN:QUERY`（上位N件を取得）。**注: `ytsearchdateN:` は「直近N日」の窓フィルタではなく日付指定**。投稿日窓（直近半年等）は取得後の `upload_date` パースで絞り込む。
+  - 検索: `ytsearchN:QUERY`（上位N件を取得、関連度順）。N = 指示の件数指定（既定 5）。
   - 統計: `view_count`（再生数）、`upload_date`（YYYYMMDD）、`like_count`
-  - チャンネル: `channel_follower_count`（登録者数・非公開時は取得不可 → **その動画は候補除外**）
-  - 字幕: `subtitles` / `automatic_captions`
-- **youtube-comment-downloader**（コメント）: yt-dlp はコメントを安定取得できないため、別 OSS で取得。
-- **Whisper**（`openai-whisper`） — 字幕が存在しない動画の音声文字起こし。yt-dlp で音声を取得し、ローカルで転写。
-- **YouTube Data API v3**（オプション・非必須） — `channel_follower_count` が隠されている場合等の公式フォールバック。
+  - チャンネル: `channel` / `channel_id` / `channel_url`
+  - 字幕: `subtitles` / `automatic_captions`（自動翻訳字幕含む。原則として必ず取得可能）
+- **Whisper** は **非利用**（2026-08-27 確定）。
 
 **Rationale**:
-- yt-dlp は API キー・クォータ不要で「検索＋統計＋登録者数＋字幕」を一貫取得でき、本ツールが求める「制限なし・複数角度探索」に最適。
-- ユーザー例の「直近半年・低登録者・高再生」は取得したメタデータからフィルタ可能。`ytsearchdate` で投稿日窓も事前絞り込み可能。
-- Whisper はローカルで動き、字幕不在動画でも「内容分析」の要件（FR-006/FR-007）を満たせる。
+- yt-dlp は API キー・クォータ不要で「検索＋統計＋字幕」を一貫取得でき、本ツールが求める「制限なし・関連度順上位N件」に最適。
+- v1 は「トレンドか」を判定せず、yt-dlp の関連度順検索結果をそのまま利用するため、velocity 等の複雑な絞り込みは不要。
 
 **Alternatives considered**:
 - `youtube-transcript-api`：字幕取得に特化。取得範囲が狭いため yt-dlp に統合。
-- 外部文字起こし API（AssemblyAI 等）：精度は高いがコスト・外部依存増。ローカル Whisper を優先。
-- `youtube-search-python`：API キーなし検索ライブラリだが、yt-dlp の方が取得情報が豊富で保守も活発。
+- `google-api-python-client`（YouTube Data API）：利用しない（ユーザー指定）。
+- `openai-whisper`：字幕不在時の音声文字起こし。v1 では利用せず、かつ字幕は自動翻訳で原則取得可能のため非利用。
 - スクレイピング（自前実装）：ToS 違反・不安定のため非採用。yt-dlp が事実上の標準。
 
 ---
 
-## R-2. オーケストレーション設計（LangGraph + 複数角度探索）
+## R-2. オーケストレーション設計（LangGraph + 単一検索）
 
-**Decision**: OpenDeepResearch（ODR）を参考に、LangGraph の `StateGraph` でノードを繋ぎ、LLM 呼び出しを `init_chat_model` で行う。探索は「単一クエリ」ではなく、`plan_searches` ノードでトピックから複数の検索角度・クエリを生成し、反復（reflect）で追加探索を行う構成とする（FR-003 / US2）。
+**Decision**: OpenDeepResearch（ODR）を参考に、LangGraph の `StateGraph` でノードを繋ぎ、LLM 呼び出しを `init_chat_model` で行う。v1 は**単一クエリ検索**（複数角度探索は将来拡張／US2）。検索クエリは `plan_search` ノードで LLM に生成させる（Q4: LLM に委ねる）。
 
 **Rationale**:
-- ユーザーが「OpenDeepResearch のように自分で複数角度から検索」を明示的に要求。ODR の「supervisor が follow-up 検索を反復」パターンがそのまま適合。
+- ユーザーが「今フェーズは複数角度探索は行わない。将来的に多角的な判定を検討」と指定（2026-08-27 確定）。v1 は単一検索で十分。
 - LangGraph の明示的グラフは、各ノード（解析・検索・文字起こし・分析・統合）を独立テスト可能にし、Constitution III（Modular Architecture）を満たす。
+- 各ノードの進捗を CLI へ表示する要件（FR-013）とも親和性が高い。
 
-**Alternatives considered**:
-- 単一スクリプトの手続き処理：テスト性・拡張性に劣るため非採用。
-- 単一エージェントのツール呼び出しのみ：複数角度の「計画的」探索を制御しにくいため、plan/reflect ノードを分離。
-
-**提案するグラフ構造（改善点）**:
+**提案するグラフ構造（v1）**:
 ```
-parse_instruction → plan_searches → search_videos → filter_candidates
-                                              ↑            │
-                                              │            ▼
-                                       (reflect: 追加角度) fetch_transcripts
-                                                                │
-                                                                ▼
-                                                         analyze_content (並列)
-                                                                │
-                                                                ▼
-                                                         extract_common
-                                                                │
-                                                                ▼
-                                                         compile_report → END
+parse_instruction → plan_search → search_videos → fetch_transcripts
+                                                          │
+                                                          ▼
+                                                   analyze_content (並列, 上限2)
+                                                          │
+                                                          ▼
+                                                   extract_common → compile_report → END
 ```
-- `plan_searches` と `reflect`（再検索判定）で ODR 的「複数角度からの自律探索」を実現。
-- `analyze_content` は動画ごとに並列化し実用時間を短縮（Performance Goals）。
+- `plan_search` で LLM がトピック選定を含めた検索クエリを 1 つ生成。
+- `search_videos` は `ytsearchN:` で単一検索し、関連度順上位 N 件を採用（トレンド判定なし）。
+- `analyze_content` は動画ごとに並列化（上限 2）し実用時間を短縮。
 
 ---
 
@@ -85,10 +73,6 @@ parse_instruction → plan_searches → search_videos → filter_candidates
 - `open_deep_research/.env`
   - `OPENAI_API_KEY=<OpenCode キー>`
   - `OPENAI_BASE_URL=https://opencode.ai/zen/go/v1`（OpenAI 互換エンドポイント）
-
-**解決ルール**（ODR `utils.get_api_key_for_model` を踏襲）:
-- `"openai:"` プレフィックスのモデルは `OPENAI_API_KEY` を使用。
-- `base_url` は `OPENAI_BASE_URL` から解決（既定 `https://opencode.ai/zen/go/v1`）。
 
 **実装方針**（`tools/llm.py`）:
 ```python
@@ -113,55 +97,42 @@ def build_model(role: str = "research"):
 
 ## R-4. 永続化（データベース非利用）
 
-**Decision**: データベースは使用しない。中間成果物（検索候補・文字起こし・分析・レポート）はローカルファイルキャッシュ（`YouTube_Trend_Researcher/cache/`）に JSON で永続化する（FR-012）。
+**Decision**: データベースは使用しない。中間成果物（検索候補・文字起こし・分析・レポート）はローカルファイルキャッシュ（`youtube_trend_researcher/cache/`）に JSON で永続化する（FR-012）。
 
-**Rationale**:
-- ユーザーが「データベースは利用する想定はありません」と明示。
-- リサーチは実行ごとに完結し、後から参照・再現できれば十分。ファイル JSON で透明性と再現性を担保。
+**Rationale**: リサーチは実行ごとに完結し、後から参照・再現できれば十分。ファイル JSON で透明性と再現性を担保。
 
 **Alternatives considered**: SQLite/Postgres：要件外の複雑さとなるため非採用。
 
 ---
 
-## R-5. 外部インターフェース（GUI なし）
+## R-5. 外部インターフェース（CLI のみ）
 
-**Decision**: CLI（`python -m youtube_trend_researcher "<指示>"`）と Python モジュール API（`research()`）の両方を提供。GUI は v1 で非対象（FR-010 / US3）。
+**Decision**: CLI（`python -m youtube_trend_researcher "<指示>"`）のみを提供。プログラム API 経由の呼び出しは将来拡張（2026-08-27 確定／Q5: Option B）。GUI は v1 で非対象（FR-010 / US3）。最終レポートは stdout、進捗・ログは stderr へ分離（FR-013）。
 
-**Rationale**: ユーザーが「OpenDeepResearch のように外部から依頼→実行→取得」を指定。ODR が LangGraph サーバ／API で外部から呼ばれる形と同義。
+**Rationale**: ユーザーが「CLI が前提」と指定。ブログ運用の自動化にも CLI がそのまま使える。
 
-**Alternatives considered**: Web UI / Gradio：現時点で不要と明示されたため非採用（将来拡張は `contracts/` で想定のみ）。
+**Alternatives considered**: Python モジュール API / Web UI / Gradio：現時点で不要と明示されたため非採用（将来拡張は `contracts/` で想定のみ）。
 
 ---
 
-## R-6. 「制限なし」で同じ目的を達成する OSS 構成まとめ
+## R-6. 要約の目的（ブログ執筆の参考）
 
-**Decision**: YouTube Data API のクォータ/検索制限を回避するため、データ取得を **yt-dlp 主体**に切り替える。これにより API キー申請・クォータ管理が不要になり、ユーザーが懸念した「制限」が解消される。
-
-**利用 OSS**:
-| 目的 | 採用 OSS | 備考 |
-|------|----------|------|
-| 検索・統計・登録者数 | **yt-dlp** | `ytsearch`/`ytsearchdate`、クォータなし |
-| 字幕・動画情報 | **yt-dlp** | captions 取得 |
-| コメント | **youtube-comment-downloader** | yt-dlp は非対応 |
-| 文字起こし（字幕なし） | **Whisper** | ローカル転写 |
-| 高精度登録者数 | YouTube Data API v3（任意） | 隠蔽時のみフォールバック |
-
-**「伸びている」の定義**: YouTube 公式のトレンドフィードはニッチ検索に弱いため、本ツールでは**メタデータから視聴velocity（再生数 ÷ 登録者数、かつ直近投稿）**を指標とし、「条件に合う動画」を自前で特定する。これによりトレンドフィードへ依存しない。**既定閾値: velocity ≥ 10.0 かつ 直近半年（180日）以内。** 指示で上書き可。`subscriber_count` が取得できない（非公開）動画は FR-004 により対象外とする。
+**Decision**: v1 の要約・分析は「ブログ記事執筆の参考」に特化。各動画の内容を「ブログでどう扱えるか」の観点で要約し、動画間の共通ネタを抽出する（FR-007 / FR-008）。レポート構成は「選定動画リスト＋個別要約＋共通ネタ表」とし、執筆ヒント／アウトライン案は含めない（Q2: Option B）。
 
 **LLM 出力形態（Clarification）**: 構造化出力の強制は行わず、プロンプトで指示しつつ、堅牢性のため軽いパース関数（`tools/parse.py`）で Markdown/JSON を抽出して後続ノードへ渡す。
 
-**実行時間上限（Clarification）**: 全体実行を **10 分**で上限とし、超過時は途中結果をまとめた部分的 `ResearchReport` を返す。
+**実行時間上限（Clarification）**: 全体実行を **100 分**で上限とし、超過時は途中結果をまとめた部分的 `ResearchReport` を返す。
 
 ## 解決済み事項サマリ
 
 | 項目 | 決定 |
 |------|------|
-| 検索・統計・登録者数 | yt-dlp（主体）／YouTube Data API v3（任意フォールバック） |
-| 字幕・情報・コメント | 字幕/情報: yt-dlp、コメント: youtube-comment-downloader |
-| 文字起こし（字幕なし） | Whisper（ローカル） |
-| オーケストレーション | LangGraph StateGraph（複数角度探索 + reflect） |
+| 検索・統計・字幕 | yt-dlp（のみ。YouTube Data API は利用しない） |
+| 文字起こし（字幕） | yt-dlp（自動翻訳字幕含む）。原則として必ず取得可能 |
+| オーケストレーション | LangGraph StateGraph（単一検索、複数角度は将来拡張） |
+| 検索クエリ生成 | LLM が指示文から 1 つ生成（plan_search） |
 | LLM | `openai:mimo-v2.5` @ `https://opencode.ai/zen/go/v1`（ODR 設定をコピー） |
 | 永続化 | DB なし、JSON ファイルキャッシュ |
-| インターフェース | CLI + モジュール API、GUI なし |
+| インターフェース | CLI のみ（プログラム API は将来拡張）、進捗は stderr |
 
 すべての `NEEDS CLARIFICATION` は解決済み。

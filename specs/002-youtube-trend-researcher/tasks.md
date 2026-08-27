@@ -4,9 +4,9 @@
 
 **Prerequisites**: plan.md (required), spec.md (required), research.md, data-model.md, contracts/ ✅ all present
 
-**Tests**: Included. Constitution IV mandates tests for all tools, and quickstart.md defines pytest validation (V1–V5). Test tasks are placed per story and in Polish.
+**Tests**: Included in Polish phase. Constitution IV mandates tests for all tools, and quickstart.md defines pytest validation (Scenario A–C). Test tasks are placed in the Polish phase.
 
-**Organization**: Tasks grouped by user story so each story can be implemented/tested/delivered independently.
+**Organization**: Tasks grouped by user story so each story can be implemented/tested/delivered independently. US2 (multiple-angle search) is **deferred to future expansion** (P4) and excluded from v1 — see Deferred phase.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -16,7 +16,7 @@
 
 ## Path Conventions
 
-Single project under `YouTube_Trend_Researcher/`:
+Single project under `youtube_trend_researcher/` (lowercase, top dir included — 2026-08-27 clarification):
 - `src/youtube_trend_researcher/` — package
 - `tests/unit/`, `tests/integration/` — tests
 - `cache/` — intermediate artifacts (DB-free persistence, FR-012)
@@ -27,10 +27,10 @@ Single project under `YouTube_Trend_Researcher/`:
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project directory structure `YouTube_Trend_Researcher/` with `src/youtube_trend_researcher/`, `tests/unit/`, `tests/integration/`, `cache/` per plan.md
-- [ ] T002 [P] Create `YouTube_Trend_Researcher/pyproject.toml` with dependencies: `langgraph`, `langchain`, `langchain-openai`, `yt-dlp`, `openai-whisper`, `pydantic`; dev: `pytest`, `ruff`, `mypy` (mirror `blog_writer/pyproject.toml` layout). NOTE: `youtube-comment-downloader` is excluded from v1 (comments out of scope per Clarification).
-- [ ] T003 [P] Create `YouTube_Trend_Researcher/.env.example` with `OPENAI_API_KEY`, `OPENAI_BASE_URL=https://opencode.ai/zen/go/v1`, `YTR_MODEL=openai:mimo-v2.5`, and optional `YOUTUBE_API_KEY` (research.md R-3/R-6)
-- [ ] T004 [P] Configure ruff and mypy in `YouTube_Trend_Researcher/pyproject.toml` (`[tool.ruff]`, `[tool.mypy]`) per Constitution IV
+- [ ] T001 Create project directory structure `youtube_trend_researcher/` with `src/youtube_trend_researcher/`, `tests/unit/`, `tests/integration/`, `cache/` per plan.md project structure
+- [ ] T002 [P] Create `youtube_trend_researcher/pyproject.toml` with dependencies: `langgraph`, `langchain`, `langchain-openai`, `yt-dlp`, `pydantic`, `python-dotenv`; dev: `pytest`, `ruff`, `mypy` (mirror `blog_writer/pyproject.toml` layout). NOTE: `openai-whisper` and `google-api-python-client` are **excluded** (Data API / Whisper not used in v1).
+- [ ] T003 [P] Create `youtube_trend_researcher/.env.example` with `OPENAI_API_KEY`, `OPENAI_BASE_URL=https://opencode.ai/zen/go/v1`, `YTR_MODEL=openai:mimo-v2.5` (research.md R-3). No `YOUTUBE_API_KEY` (YouTube Data API not used).
+- [ ] T004 [P] Configure ruff and mypy in `youtube_trend_researcher/pyproject.toml` (`[tool.ruff]`, `[tool.mypy]`) per Constitution IV
 
 **Checkpoint**: Project scaffold and dependency manifest ready.
 
@@ -40,15 +40,15 @@ Single project under `YouTube_Trend_Researcher/`:
 
 **Purpose**: Core infrastructure that MUST complete before ANY user story
 
-- [ ] T005 [P] Implement `src/youtube_trend_researcher/config.py` — `Config` pydantic model (youtube_api_key, openai_api_key, openai_base_url, model, cache_dir, transcript_language, max_retries) loading from env/.env (contracts/module-api.md)
+- [ ] T005 [P] Implement `src/youtube_trend_researcher/config.py` — `Config` pydantic model (openai_api_key, openai_base_url, model, cache_dir, transcript_language, max_retries) loading from env/.env. No `youtube_api_key` field (Data API not used).
 - [ ] T006 [P] Implement `src/youtube_trend_researcher/tools/llm.py` — `build_model(role)` mirroring OpenDeepResearch: `init_chat_model(model, max_tokens, api_key, base_url)` with `configurable_fields=("model","max_tokens","api_key")`; default `openai:mimo-v2.5` @ `OPENAI_BASE_URL` (research.md R-3)
-- [ ] T007 [P] Implement `src/youtube_trend_researcher/models.py` — Pydantic entities `ResearchInstruction`, `InstructionFilters`, `OutputSpec`, `VideoCandidate`, `Transcript`, `AnalysisFinding`, `CommonTheme`, `ResearchReport` per data-model.md
-- [ ] T008 [P] Implement `src/youtube_trend_researcher/tools/youtube_search.py` — yt-dlp based search via `ytsearchN:` (date filtering applied post-hoc via `upload_date` parse, NOT `ytsearchdateN:`); map results to `VideoCandidate` (view_count, upload_date, channel_follower_count, like_count); exclude `channel_follower_count=None` videos (research.md R-1, FR-003/FR-004)
-- [ ] T009 [P] Implement `src/youtube_trend_researcher/tools/transcript.py` — yt-dlp `subtitles`/`automatic_captions` then Whisper fallback for audio (GPU/CUDA assumed); return `Transcript(source="caption"|"whisper")` (FR-006)
-- [ ] T010 [P] Implement `src/youtube_trend_researcher/tools/youtube_api.py` — optional YouTube Data API v3 fallback for `channel_follower_count` when hidden (non-blocking, FR-004)
-- [ ] T011 [P] Implement `src/youtube_trend_researcher/tools/parse.py` — lightweight parser extracting structured data (Markdown/JSON) from LLM outputs for downstream nodes (Clarification: prompt-driven, not forced structured output)
-- [ ] T012 [P] Implement `src/youtube_trend_researcher/prompts.py` — centralized LLM prompt strings for `parse_instruction`, `plan_searches`, `analyze_content`, `extract_common`, `compile_report` (plan.md structure; resolves U1)
-- [ ] T013 [P] Implement cache persistence helper in `src/youtube_trend_researcher/cache.py` — `write_json`/`read_json` to `cache/` for intermediate artifacts (candidates, transcripts, analyses) (FR-012)
+- [ ] T007 [P] Implement `src/youtube_trend_researcher/models.py` — Pydantic entities per data-model.md: `ResearchInstruction` (raw_text, topic, max_results, output), `OutputSpec`, `VideoCandidate` (no subscriber_count/relevance_score; add relevance_rank), `Transcript` (source=`caption`|`automatic_caption`), `AnalysisFinding` (blog summary), `CommonTheme`, `ResearchReport`
+- [ ] T008 [P] Implement `src/youtube_trend_researcher/tools/youtube_search.py` — yt-dlp based single search via `ytsearchN:` (N from instruction max_results, default 5); map results to `VideoCandidate` (view_count, upload_date, channel fields, like_count). No `channel_follower_count`, no exclusion logic, no velocity (research.md R-1, FR-003/FR-004/FR-005)
+- [ ] T009 [P] Implement `src/youtube_trend_researcher/tools/transcript.py` — yt-dlp `subtitles`/`automatic_captions` (auto-translate fallback) only; return `Transcript(source="caption"|"automatic_caption")`. No Whisper (FR-006). Subtitles are assumed always retrievable via auto-translate.
+- [ ] T010 [P] Implement `src/youtube_trend_researcher/tools/parse.py` — lightweight parser extracting structured data (Markdown/JSON) from LLM outputs for downstream nodes (prompt-driven, not forced structured output)
+- [ ] T011 [P] Implement `src/youtube_trend_researcher/prompts.py` — centralized LLM prompt strings for `parse_instruction`, `plan_search`, `analyze_content` (blog-writing reference angle), `extract_common`, `compile_report` (plan.md node graph)
+- [ ] T012 [P] Implement cache persistence helper in `src/youtube_trend_researcher/cache.py` — `write_json`/`read_json` to `cache/` for intermediate artifacts (candidates, transcripts, analyses) (FR-012)
+- [ ] T013 Implement `src/youtube_trend_researcher/progress.py` — node progress emitter writing to stderr: `emit(node_index, total, node_name, phase)` printing `[n/7] <node> ... 開始|完了`. Used by all nodes to satisfy FR-013 (no blank gap between progress and final result)
 - [ ] T014 Implement `src/youtube_trend_researcher/state.py` — LangGraph `State` (instruction, candidates, transcripts, analyses, common_themes, report, notes) per data-model.md graph transitions
 
 **Checkpoint**: Foundation ready — user story implementation can now begin.
@@ -57,131 +57,97 @@ Single project under `YouTube_Trend_Researcher/`:
 
 ## Phase 3: User Story 1 - 自然言語指示からの自律リサーチ実行 (Priority: P1) 🎯 MVP
 
-**Goal**: Given a natural-language instruction, autonomously run search → filter → transcript → analysis → common-extraction → report, returning a final `ResearchReport` with no human input.
+**Goal**: Given a natural-language instruction, autonomously run parse → plan_search → search → fetch → analyze → extract_common → compile, returning a final `ResearchReport` with no human input.
 
-**Independent Test**: Run instruction "Claude Codeで会社を回す方法を解説している動画で伸びているものを10個ピックアップして" with mocked tools; assert `ResearchReport` contains candidates + analyses + common_themes + sources (spec.md US1 Acceptance 1–3).
+**Independent Test**: `python -m youtube_trend_researcher "Claude Code で会社を回す方法を解説している動画を参考にブログを書きたい"` returns a Markdown report with selected video list + per-video summaries + common-net table (SC-001, SC-002).
 
-### Implementation for User Story 1
-
-- [ ] T015 [US1] Implement `src/youtube_trend_researcher/nodes/parse_instruction.py` — LLM extracts structured `ResearchInstruction` (topic, filters, output) from raw text (FR-001)
-- [ ] T016 [US1] Implement `src/youtube_trend_researcher/nodes/search_videos.py` — run a single search using `tools/youtube_search.py` from instruction topic (foundation for US2 multi-angle) (FR-003/FR-004)
-- [ ] T017 [US1] Implement `src/youtube_trend_researcher/nodes/filter_candidates.py` — apply `InstructionFilters` (date window, subscriber_max, views_min, velocity_ratio, max_results) to candidates (FR-005)
-- [ ] T018 [US1] Implement `src/youtube_trend_researcher/nodes/fetch_transcripts.py` — for filtered candidates, fetch transcripts via `tools/transcript.py` (caption→Whisper GPU); record source/none in `notes` (FR-006)
-- [ ] T019 [US1] Implement `src/youtube_trend_researcher/nodes/analyze_content.py` — LLM per-video `trending_reason` + `evidence` from transcript, parsed via `tools/parse.py` (FR-007, prompt-driven). **Max 2 concurrent LLM calls** (Clarification).
-- [ ] T020 [US1] Implement `src/youtube_trend_researcher/nodes/extract_common.py` — LLM aggregate `AnalysisFinding`s into `CommonTheme` list using video transcripts only (no comments) (FR-008)
-- [ ] T021 [US1] Implement `src/youtube_trend_researcher/nodes/compile_report.py` — assemble `ResearchReport` (candidates, analyses, common_themes, sources, notes), default markdown (FR-009/FR-010)
-- [ ] T022 [US1] Implement `src/youtube_trend_researcher/graph.py` — wire `StateGraph` parse→search→filter→fetch→analyze→extract→compile→END (single-angle) and provide `run()` entry
+- [ ] T015 [US1] Implement `src/youtube_trend_researcher/nodes/parse_instruction.py` — LLM extracts structured `ResearchInstruction` (topic, max_results default 5, output) from raw text; emit progress start/complete via `progress.py` (FR-001)
+- [ ] T016 [US1] Implement `src/youtube_trend_researcher/nodes/plan_search.py` — LLM generates ONE search query from instruction (topic selection delegated to LLM, Q4); emit progress; no multi-angle (FR-003)
+- [ ] T017 [US1] Implement `src/youtube_trend_researcher/nodes/search_videos.py` — run single `ytsearchN:` search via `tools/youtube_search.py` using query from plan_search; take top N by relevance (no trend/velocity filter); emit progress (FR-003/FR-005)
+- [ ] T018 [US1] Implement `src/youtube_trend_researcher/nodes/fetch_transcripts.py` — for selected candidates, fetch transcripts via `tools/transcript.py` (auto-translate; assumed always available); emit progress (FR-006)
+- [ ] T019 [US1] Implement `src/youtube_trend_researcher/nodes/analyze_content.py` — LLM per-video blog-writing-reference summary (`summary`, `key_points`, `evidence`) from transcript, parsed via `tools/parse.py`; **max 2 concurrent LLM calls**; emit progress (FR-007)
+- [ ] T020 [US1] Implement `src/youtube_trend_researcher/nodes/extract_common.py` — LLM aggregate `AnalysisFinding`s into `CommonTheme` list (blog common-net) using transcripts only (no comments); emit progress (FR-008)
+- [ ] T021 [US1] Implement `src/youtube_trend_researcher/nodes/compile_report.py` — assemble `ResearchReport` (candidates, analyses, common_themes, sources, notes), default markdown; emit progress (FR-009/FR-010)
+- [ ] T022 [US1] Implement `src/youtube_trend_researcher/graph.py` — wire `StateGraph` parse→plan_search→search→fetch→analyze→extract→compile→END (single search) and provide `run()` entry. Add overall execution time monitor: abort at 100 min (Clarification) and return partial `ResearchReport` for completed candidates/analyses (SC-005, Edge Case: timeout)
 - [ ] T023 [US1] Implement `src/youtube_trend_researcher/__init__.py` skeleton `research()` that invokes graph and returns `ResearchReport` (full flow, US1 MVP)
 
-**Checkpoint**: US1 fully functional end-to-end (single search angle). Independently testable.
+**Checkpoint**: `python -m youtube_trend_researcher "<instruction>"` produces a full report end-to-end (SC-001).
 
 ---
 
-## Phase 4: User Story 2 - 複数角度からの自律的探索 (Priority: P1)
+## Phase 4: User Story 3 - 外部リクエスト・実行・アウトプット取得のインターフェース (Priority: P2)
 
-**Goal**: From the topic, auto-generate multiple search angles/queries, search repeatedly, merge/dedupe, and reflect to add angles when coverage is insufficient — never depending on a single query.
+**Goal**: CLI entry that accepts an instruction and returns the structured report; progress on stderr, report on stdout/file.
 
-**Independent Test**: Given a topic instruction, assert multiple queries are generated, searched, and merged into a unified candidate list (spec.md US2 Acceptance 1–2).
+**Independent Test**: Run via CLI with `--format markdown` and `--output out.md`; assert exit 0 and report file written; stderr shows `[1/7]`..`[7/7]` progress (contracts/cli.md).
 
-### Implementation for User Story 2
+- [ ] T024 [US3] Implement `src/youtube_trend_researcher/__main__.py` CLI — argparse for `INSTRUCTION`, `--output`, `--format {markdown,json}`, `--max-results` (default 5), `--lang` (default ja), `--cache-dir`; exit codes 0/1/2 per contracts/cli.md. Handle FR-011 error cases: 0 candidates → "該当なし" message; network failure → retry/backoff then user-friendly stderr message; report actual found count when below requested (Edge Cases).
+- [ ] T025 [US3] Wire `progress.py` output to stderr and final report to stdout (or `--output` file) in `__main__.py` so progress and result never collapse into a blank gap (FR-013)
+- [ ] T026 [US3] Document CLI usage in `youtube_trend_researcher/README.md` per contracts/cli.md (command, options, progress format, exit codes)
 
-- [ ] T024 [US2] Implement `src/youtube_trend_researcher/nodes/plan_searches.py` — LLM generates multiple search angles/queries from topic (FR-003) (research.md R-2 graph)
-- [ ] T025 [US2] Extend `src/youtube_trend_researcher/nodes/search_videos.py` to iterate over queries from `plan_searches`, collecting candidates
-- [ ] T026 [US2] Add dedupe/merge of candidates across queries (by `video_id`) into a unified candidate list (Acceptance US2-2)
-- [ ] T027 [US2] Add reflect loop in `src/youtube_trend_researcher/graph.py` — re-plan additional angles when candidate pool is insufficient (ODR-style reflect, max **3 iterations** per Clarification U2) (research.md R-2)
-- [ ] T028 [US2] Integration test in `tests/integration/test_multi_angle.py` — verify multiple queries generated and merged (Acceptance US2)
-
-**Checkpoint**: US1 AND US2 both work; multi-angle autonomous exploration functional.
+**Checkpoint**: CLI usable as the sole interface; programmatic API deferred.
 
 ---
 
-## Phase 5: User Story 3 - 外部リクエスト・実行・アウトプット取得のインターフェース (Priority: P2)
+## Phase 5: User Story 4 - 件数指定と多様な出力形式 (Priority: P3)
 
-**Goal**: External request → execute → obtain output, without a GUI (CLI + module API).
+**Goal**: Interpret NL count from instruction; support markdown/json output and common-net table.
 
-**Independent Test**: Invoke via `python -m youtube_trend_researcher "<instruction>"` and via `research()` import; assert structured report returned with exit 0 (spec.md US3 Acceptance 1–3).
+**Independent Test**: `--max-results 10` selects top 10; `--format json` writes report-schema.json; common-net appears as a table in markdown (SC-003, SC-004).
 
-### Implementation for User Story 3
+- [ ] T027 [US4] Enhance `src/youtube_trend_researcher/nodes/parse_instruction.py` to interpret NL count ("10個" etc.) into `max_results` (default 5 when unspecified) (FR-005, SC-003)
+- [ ] T028 [US4] Enhance `src/youtube_trend_researcher/nodes/compile_report.py` to support `--format json` (report-schema.md) and markdown table for `common_themes` (FR-009, SC-004)
 
-- [ ] T029 [US3] Finalize `src/youtube_trend_researcher/__init__.py` `research()` async entry returning `ResearchReport`; raise `ConfigurationError`/`NoCandidatesError` per contracts/module-api.md
-- [ ] T030 [US3] Implement `src/youtube_trend_researcher/__main__.py` CLI — argparse for `INSTRUCTION`, `--output`, `--format`, `--cache-dir`, `--config`; exit codes 0/1/2/3 per contracts/cli.md
-- [ ] T031 [US3] Document module API usage in `YouTube_Trend_Researcher/README.md` (import `research`, `Config`) per contracts/module-api.md
-
-**Checkpoint**: All user stories independently functional; external invocation works.
+**Checkpoint**: Count override and output formats verified.
 
 ---
 
-## Phase 6: User Story 4 - 指示に基づく絞り込みと多様な出力形式 (Priority: P3)
+## Phase 6: Deferred — User Story 2 (Priority: P4, Future Expansion)
 
-**Goal**: Interpret natural-language filter phrases and honor output-format directives (e.g., common points as a table).
+**Note**: Multi-angle autonomous exploration (plan_searches / reflect loop) is **explicitly deferred to a future phase** (2026-08-27 clarification). v1 uses a single LLM-generated query only. No implementation tasks in v1.
 
-**Independent Test**: Instruction "直近半年以内・登録者が少ないのに再生が伸びているものに絞って、共通点は表でまとめて" yields date/velocity-filtered candidates and a table for common points (SC-003/SC-004).
-
-### Implementation for User Story 4
-
-- [ ] T032 [US4] Enhance `src/youtube_trend_researcher/nodes/parse_instruction.py` to interpret NL filters ("直近半年", "登録者少ないのに再生が伸びている") into `InstructionFilters` (velocity_ratio, subscriber_max, published_after) (FR-005)
-- [ ] T033 [US4] Enhance `src/youtube_trend_researcher/nodes/compile_report.py` to support `--format json` (report-schema.md) and markdown table for `common_themes` when `output.table_for` includes `common_points` (FR-009, SC-004)
-- [ ] T034 [US4] Integration in `tests/integration/test_filter_format.py` — user example yields filtered (≤6mo, low-sub/high-view) candidates with common points as table (SC-003/SC-004)
-
-**Checkpoint**: All four user stories complete and independently testable.
+- [ ] T029 [US2] (FUTURE) Design note only: when implementing, add `nodes/plan_searches.py` for multiple-angle query generation and a reflect loop in `graph.py`. Not built in v1.
 
 ---
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T035 [P] Unit tests for tools in `tests/unit/test_tools.py` — `youtube_search` parse, `transcript` fallback, `llm.build_model` (Constitution IV). NOTE: comments tool is out of v1 scope (no test).
-- [ ] T036 [P] Unit tests for nodes in `tests/unit/test_nodes.py` — filter logic, `parse_instruction` structured output, report assembly
-- [ ] T037 [P] Integration test end-to-end with mocked external services per quickstart V1 in `tests/integration/test_e2e_mock.py`
-- [ ] T038 [P] Documentation in `YouTube_Trend_Researcher/README.md` — quickstart, `.env.example` notes, architecture diagram (plan.md project structure)
-- [ ] T039 Run quickstart.md validation scenarios V2–V5; ensure `ruff`, `mypy`, `pytest` clean
-- [ ] T040 Final consistency review of spec.md / plan.md / tasks.md; update `.github/copilot-instructions.md` reference if needed
-- [ ] T041 [US1] Add an overall 100-minute execution timeout in `graph.py` so a partial `ResearchReport` is returned on overrun (Clarification)
+- [ ] T030 [P] Unit tests in `youtube_trend_researcher/tests/unit/` for `tools/llm.py`, `tools/youtube_search.py`, `tools/transcript.py`, `tools/parse.py`, `models.py` (mock yt-dlp / LLM)
+- [ ] T031 [P] Integration test in `youtube_trend_researcher/tests/integration/` covering quickstart.md Scenario A (default 5, markdown), B (max-results 10, json), C (subtitle retrieval) using recorded fixtures
+- [ ] T032 [P] Documentation in `youtube_trend_researcher/README.md` — architecture diagram (plan.md node graph), `.env.example` notes, progress display design (FR-013)
+- [ ] T033 [P] Verify Constitution IV compliance: ruff clean, mypy clean, all modules importable; `python -m youtube_trend_researcher --help` exits 0
 
 ---
 
-## Dependencies & Execution Order
+## Dependencies
 
-### Phase Dependencies
-
-- **Setup (Phase 1)**: No dependencies — start immediately
-- **Foundational (Phase 2)**: Depends on Setup — BLOCKS all user stories
-- **US1 (Phase 3)**: Depends on Foundational — MVP
-- **US2 (Phase 4)**: Depends on US1 (extends `search_videos`, `graph`)
-- **US3 (Phase 5)**: Depends on US1 (wraps `research()`)
-- **US4 (Phase 6)**: Depends on US1 (extends `parse_instruction`, `compile_report`)
-- **Polish (Phase 7)**: Depends on all user stories complete
-
-### User Story Dependencies
-
-- **US1 (P1)**: After Foundational — no dependency on other stories
-- **US2 (P1)**: After US1 — extends search/graph
-- **US3 (P2)**: After US1 — wraps flow
-- **US4 (P3)**: After US1 — extends parse/compile
-
-### Parallel Opportunities
-
-- All Phase 1 tasks T002–T004 marked [P] run in parallel after T001
-- All Foundational T005–T014 marked [P] run in parallel (independent files)
-- US2/US3/US4 can each start after US1 independently (different files)
-- Polish tests T035–T038 marked [P] run in parallel
-
-### Suggested MVP Scope
-
-**US1 only (Phase 3 + its Foundational deps)**: A single-angle autonomous research pipeline returning a `ResearchReport`. This delivers the core value (spec US1, SC-001/SC-002). US2–US4 layer multi-angle, external interface, and format refinements on top.
-
----
-
-## Parallel Example: User Story 1
-
-```bash
-# After Foundational completes, US1 implementation tasks can be parallelized where independent:
-# T015 (parse)        — independent, writes ResearchInstruction
-# T017 (filter)       — depends on T016 (search) output shape, but code can be written in parallel
-# T018 (transcripts)  — depends on T017 output shape, code independent
-# T019 (analyze)      — independent node, depends on T018 shape
-# T020 (common)       — independent node, depends on T019 shape
-# T021 (compile)      — depends on all above shapes
-# T022 (graph)        — depends on T015–T021 being present
+```mermaid
+graph TD
+    T001 --> T002 --> T004
+    T001 --> T003
+    T002 --> T005 --> T006 --> T007 --> T008 --> T009 --> T010 --> T011 --> T012 --> T013 --> T014
+    T014 --> T015 --> T016 --> T017 --> T018 --> T019 --> T020 --> T021 --> T022 --> T023
+    T023 --> T024 --> T025 --> T026
+    T015 --> T027
+    T021 --> T028
+    T014 --> T030
+    T023 --> T031
+    T026 --> T032 --> T033
 ```
 
-Write nodes (T014–T020) in parallel, then wire graph (T021) and flow (T022).
+## Parallel Execution Examples
+
+- **Phase 2 foundation**: T005–T012 are independent file creations → run in parallel (mark [P]).
+- **Per-story**: Within US1, node implementations T015–T021 can be coded in parallel once T014 (state) and T007 (models) exist; graph wiring T022 depends on all nodes.
+- **Polish**: T030, T031, T032, T033 are independent → parallel.
+
+## Implementation Strategy
+
+- **MVP first**: Phase 3 (US1) delivers the core autonomous flow — the primary value.
+- **Incremental**: Add CLI (US3), then count/format (US4). US2 deferred.
+- **Suggested MVP scope**: Phase 1 + Phase 2 + Phase 3 (T001–T023). This yields a working `python -m youtube_trend_researcher` end-to-end.
+- **Cross-cutting**: Tests and docs in Phase 7; run ruff/mypy early and often (Constitution IV).
+
+## Format Validation
+
+All tasks follow the checklist format: checkbox `- [ ]`, sequential Task ID (T001..T033), `[P]` marker for parallelizable, `[USn]` label on user-story-phase tasks, and explicit file paths. ✅
