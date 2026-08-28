@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build a single markdown context file from analyze_structure.py artifacts.
 
-Reads the artifacts produced by youtube_trend_researcher/script/analyze_structure.py
+Reads the artifacts produced by trend_researcher/script/analyze_structure.py
 and consolidates them into one markdown document suitable as input for an LLM that
 will generate a human-readable structure report + improvement suggestions.
 
@@ -122,11 +122,20 @@ def main() -> int:
 
     lines.append("## 5. Available diagrams")
     lines.append("")
-    for name in ("pyreverse/classes_ytr.png", "pyreverse/classes_ytr.svg",
-                 "pyreverse/packages_ytr.png", "pyreverse/packages_ytr.svg",
-                 "pydeps_ytr.png", "pydeps_ytr.svg"):
-        p = art / name
-        lines.append(f"- `{name}` : {'present' if p.exists() else 'MISSING'}")
+    # analyze_structure.py emits packages_<pkg>.* / classes_<pkg>.* / pydeps_<pkg>.*
+    # where <pkg> is the source package name (e.g. trend_researcher). Resolve by glob.
+    diagram_patterns = [
+        "pyreverse/classes_*.png", "pyreverse/classes_*.svg",
+        "pyreverse/packages_*.png", "pyreverse/packages_*.svg",
+        "pydeps_*.png", "pydeps_*.svg",
+    ]
+    for pat in diagram_patterns:
+        matches = sorted(art.glob(pat))
+        if matches:
+            for p in matches:
+                lines.append(f"- `{p.relative_to(art)}` : present")
+        else:
+            lines.append(f"- `{pat}` : MISSING")
     lines.append("")
 
     out.write_text("\n".join(lines), encoding="utf-8")

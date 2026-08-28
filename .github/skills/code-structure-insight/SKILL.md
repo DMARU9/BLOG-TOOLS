@@ -10,11 +10,11 @@ Python ソースコードの静的解析結果から、**人間が理解しや�
 
 ## 前提
 
-このスキルは `youtube_trend_researcher/script/analyze_structure.py` の出力（`artifacts/`）を
+このスキルは `trend_researcher/script/analyze_structure.py` の出力（`artifacts/`）を
 読み込んで動作します。事前に構造解析が実行されていない場合は、以下を実行してください。
 
 ```bash
-cd youtube_trend_researcher
+cd trend_researcher
 export PATH="$PWD/.venv/bin:$PATH"
 python script/analyze_structure.py
 ```
@@ -28,7 +28,7 @@ python script/analyze_structure.py
 `scripts/build_context.py` を使って `artifacts/` を1つの markdown にまとめます。
 
 ```bash
-cd youtube_trend_researcher
+cd trend_researcher
 export PATH="$PWD/.venv/bin:$PATH"
 python ../.github/skills/code-structure-insight/scripts/build_context.py \
     --artifacts artifacts \
@@ -40,7 +40,7 @@ python ../.github/skills/code-structure-insight/scripts/build_context.py \
 - `radon_cc.json` （全関数の循環複雑度）
 - `radon_mi.json` （保守性指標）
 - `isolated_modules.txt` （誰からも import されていないモジュール）
-- `pyreverse/classes_ytr.dot` と `pydeps_ytr.svg` の存在確認
+- `pyreverse/classes_trend_researcher.dot` と `pydeps_trend_researcher.svg` の存在確認
 
 ### 2. 人間向けレポートの生成（このスキルの本体）
 
@@ -49,9 +49,9 @@ python ../.github/skills/code-structure-insight/scripts/build_context.py \
 #### 構成テンプレート
 
 1. **全体像（関連図の解説）**
-   - `pydeps_ytr.png` / `pydeps_ytr.svg` を参照し、モジュール間の依存の流れを文章で説明
+   - `pydeps_trend_researcher.png` / `pydeps_trend_researcher.svg` を参照し、モジュール間の依存の流れを文章で説明
    - 中心的なモジュール（多くから依存されているもの）と末端のモジュールを指摘
-   - クラス中心の構造は `classes_ytr.png` を補足として参照
+   - クラス中心の構造は `classes_trend_researcher.png` を補足として参照
 
 2. **浮いているソース（孤立モジュール）**
    - `isolated_modules.txt` の一覧をもとに、使われていない/使われていないはずのモジュールを列挙
