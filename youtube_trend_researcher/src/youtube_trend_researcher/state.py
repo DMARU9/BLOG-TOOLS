@@ -36,3 +36,4 @@ class State(TypedDict, total=False):
     report: ResearchReport
     notes: list[str]
     transcript_language: str
+    cache_dir: str | None

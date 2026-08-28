@@ -87,6 +87,7 @@ def run(
     transcript_language: str = "ja",
     output_format: OutputFormat = OutputFormat.MARKDOWN,
     since: datetime | None = None,
+    cache_dir: str | None = None,
 ) -> ResearchReport:
     """自然言語指示から自律的にリサーチを実行し、ResearchReport を返す。
 
@@ -96,6 +97,7 @@ def run(
         transcript_language: 字幕優先言語。
         output_format: 出力形式（markdown/json）。
         since: 投稿日下限（任意、CLI --since 用）。
+        cache_dir: 中間成果物の永続化先（任意、FR-012）。
 
     Returns:
         完成（またはタイムアウト時は部分的な）ResearchReport。
@@ -114,6 +116,7 @@ def run(
         "published_after": instruction.published_after,
         "max_results": instruction.max_results,
         "output_format": instruction.output.format,
+        "cache_dir": cache_dir,
     }
 
     # SIGALRM による全体時間監視（Linux のみ）

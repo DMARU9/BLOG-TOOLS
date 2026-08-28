@@ -50,9 +50,21 @@ def _extract_published_after_from_text(text: str) -> datetime | None:
     return None
 
 
+# 期間ラベル（数字+月以外）を投稿日下限の相対日数に変換するマッピング。
+# 「最近」単体は 3 ヶ月程度とみなす。
+_RELATIVE_PERIOD_DAYS = {
+    "半年": 182,
+    "1年": 365,
+    "年": 365,
+    "本年": 0,   # 当年 1/1 から（下で特別処理）
+    "今年": 0,
+    "最近": 92,
+}
+
+
 def _period_to_date(label: str, now: datetime) -> datetime | None:
     """期間ラベルを投稿日下限の datetime に変換。"""
-    # 数字+月 パターン
+    # 数字+月 パターン（「3ヶ月」「一月」等）は個別に月数計算
     num_m = re.search(r"([0-9０-９]+)\s*[ヶカ]?\s*月", label)
     if num_m:
         months = int(num_m.group(1))
@@ -61,15 +73,10 @@ def _period_to_date(label: str, now: datetime) -> datetime | None:
         y = total_months // 12
         mo = total_months % 12 + 1
         return datetime(y, mo, now.day, now.hour, now.minute, now.second, now.microsecond, tzinfo=UTC)
-    if label == "半年":
-        return now - timedelta(days=182)
-    if label in ("1年", "年"):
-        return now - timedelta(days=365)
-    if label in ("本年", "今年"):
-        return datetime(now.year, 1, 1, tzinfo=UTC)
-    if label == "最近":
-        # 「最近」単体は 3 ヶ月程度とみなす
-        return now - timedelta(days=92)
+    # 固定ラベルはマッピング表から解決
+    if label in _RELATIVE_PERIOD_DAYS:
+        days = _RELATIVE_PERIOD_DAYS[label]
+        return datetime(now.year, 1, 1, tzinfo=UTC) if days == 0 else now - timedelta(days=days)
     return None
 
 

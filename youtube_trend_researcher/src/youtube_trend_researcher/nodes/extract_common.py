@@ -47,19 +47,13 @@ def extract_common(state: State) -> State:
     return {"common_themes": themes}
 
 
-def _parse_themes(text: str, video_ids: list[str]) -> list[CommonTheme]:
-    """Markdown の「### テーマ名」/「#### N. テーマ」セクションを CommonTheme に変換。
-
-    LLM の出力スタイル（### または #### の見出し）の揺れを吸収する。
-    """
-    themes: list[CommonTheme] = []
-    # 見出し行（### / #### 等）で区切る
+def _split_sections(text: str) -> list[list[str]]:
+    """Markdown を「### / #### 見出し」で区切ったセクション（行のリスト）に分割。"""
+    heading_re = re.compile(r"^#{3,4}\s+(.*)$")
     sections: list[list[str]] = []
     current: list[str] = []
-    heading_re = re.compile(r"^#{3,4}\s+(.*)$")
     for line in text.splitlines():
-        m = heading_re.match(line)
-        if m:
+        if heading_re.match(line):
             if current:
                 sections.append(current)
             current = [line]
@@ -67,11 +61,20 @@ def _parse_themes(text: str, video_ids: list[str]) -> list[CommonTheme]:
             current.append(line)
     if current:
         sections.append(current)
+    return sections
+
+
+def _parse_themes(text: str, video_ids: list[str]) -> list[CommonTheme]:
+    """Markdown の「### テーマ名」/「#### N. テーマ」セクションを CommonTheme に変換。
+
+    LLM の出力スタイル（### または #### の見出し）の揺れを吸収する。
+    """
+    themes: list[CommonTheme] = []
+    heading_re = re.compile(r"^#{3,4}\s+(.*)$")
 
     idx = 0
-    for sec in sections:
-        heading_line = sec[0]
-        hm = heading_re.match(heading_line)
+    for sec in _split_sections(text):
+        hm = heading_re.match(sec[0])
         if not hm:
             continue
         theme_name = hm.group(1).strip()
@@ -84,7 +87,8 @@ def _parse_themes(text: str, video_ids: list[str]) -> list[CommonTheme]:
             body = theme_name
         idx += 1
         desc = extract_section(body, "説明") or body
-        supporting = video_ids  # 簡易: 全動画を該当とみなす（詳細な紐付けは将来拡張）
+        # 簡易: 全動画を該当とみなす（詳細な紐付けは将来拡張）
+        supporting = video_ids
         quotes = extract_list_items(extract_section(body, "代表抜粋")) or extract_list_items(body)
         themes.append(
             CommonTheme(

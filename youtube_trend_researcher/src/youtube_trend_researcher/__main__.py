@@ -67,6 +67,7 @@ def main(argv: list[str] | None = None) -> int:
             transcript_language=lang,
             output_format=output_format,
             since=since,
+            cache_dir=str(config.cache_dir),
         )
     except Exception as exc:  # noqa: BLE001 - FR-011: すべての実行時エラーをユーザーに通知
         print(f"[エラー] リサーチ実行中に問題が発生しました: {exc}", file=sys.stderr, flush=True)

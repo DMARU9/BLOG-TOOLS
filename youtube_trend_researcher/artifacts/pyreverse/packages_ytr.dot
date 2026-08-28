@@ -43,6 +43,7 @@ charset="utf-8"
 "youtube_trend_researcher.nodes.analyze_content" -> "youtube_trend_researcher.state" [arrowhead="open", arrowtail="none"];
 "youtube_trend_researcher.nodes.analyze_content" -> "youtube_trend_researcher.tools.llm" [arrowhead="open", arrowtail="none"];
 "youtube_trend_researcher.nodes.analyze_content" -> "youtube_trend_researcher.tools.parse" [arrowhead="open", arrowtail="none"];
+"youtube_trend_researcher.nodes.compile_report" -> "youtube_trend_researcher.cache" [arrowhead="open", arrowtail="none"];
 "youtube_trend_researcher.nodes.compile_report" -> "youtube_trend_researcher.models" [arrowhead="open", arrowtail="none"];
 "youtube_trend_researcher.nodes.compile_report" -> "youtube_trend_researcher.progress" [arrowhead="open", arrowtail="none"];
 "youtube_trend_researcher.nodes.compile_report" -> "youtube_trend_researcher.state" [arrowhead="open", arrowtail="none"];
