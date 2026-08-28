@@ -74,25 +74,10 @@ def search_videos(
     for rank, entry in enumerate(entries, start=1):
         if not entry:
             continue
-        video_id = entry.get("id") or ""
-        url = entry.get("url") or entry.get("webpage_url") or f"https://www.youtube.com/watch?v={video_id}"
         published_at = _parse_upload_date(entry.get("upload_date"))
         if published_after is not None and published_at is not None and published_at < published_after:
             continue
-        candidates.append(
-            Candidate(
-                platform="youtube",
-                id=video_id or "",
-                title=entry.get("title") or "",
-                url=url,
-                author_name=entry.get("channel") or entry.get("uploader") or "",
-                channel_id=entry.get("channel_id") or "",
-                published_at=published_at,
-                view_count=entry.get("view_count"),
-                like_count=entry.get("like_count"),
-                relevance_rank=rank,
-            )
-        )
+        candidates.append(_entry_to_candidate(entry, rank))
         if len(candidates) >= max_results:
             break
 

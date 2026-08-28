@@ -26,7 +26,11 @@ def write_json(cache_dir: Path, name: str, data: Any) -> Path:
 
 
 def read_json(cache_dir: Path, name: str) -> Any | None:
-    """cache_dir 配下の name.json を読み込む。存在しなければ None。"""
+    """cache_dir 配下の name.json を読み込む。存在しなければ None。
+
+    現状のパイプラインは write_json（compile_report からの永続化）のみを利用し、
+    読み戻し経路は未実装（「書き込み専用」の設計）。将来の途中再開等に備えて用意。
+    """
     path = cache_dir / f"{name}.json"
     if not path.exists():
         return None

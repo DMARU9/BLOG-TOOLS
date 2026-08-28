@@ -106,13 +106,3 @@ def fetch_threads(candidates: list[Candidate], accounts_db: str = "accounts.db")
     if not candidates:
         return []
     return asyncio.run(_fetch_threads_async(candidates, accounts_db))
-
-
-def _fake_candidates_for_fetch(candidates: list[Candidate]) -> list[Candidate]:
-    """fetch_threads は id のみを利用するため、そのまま渡してよい（互換ヘルパ）。"""
-    return candidates
-
-
-def _user_from_candidate(c: Candidate) -> "User | None":
-    """テスト等で TweetCandidate 互換が必要な場合のダミー（未使用）。"""
-    return None

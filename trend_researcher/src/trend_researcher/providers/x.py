@@ -64,12 +64,8 @@ class XProvider:
         notes: list[str] = []
         if not candidates:
             return [], notes
-        # Candidate を TweetCandidate ライクに変換して渡す（id のみ使用）
-        from trend_researcher.tools.x_search import _fake_candidates_for_fetch
-
-        fake = _fake_candidates_for_fetch(candidates)
         try:
-            contexts = fetch_threads(fake, accounts_db=str(config.accounts_db))
+            contexts = fetch_threads(candidates, accounts_db=str(config.accounts_db))
         except Exception as exc:  # noqa: BLE001 - コンテキスト取得失敗は本文のみで解析
             notes.append(f"スレッド取得に失敗しました（本文のみで解析）: {exc}")
             contexts = [Context(id=c.id, text=c.text) for c in candidates]
