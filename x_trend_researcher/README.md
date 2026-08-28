@@ -5,6 +5,7 @@
 - **データソースは `twscrape`**（非公式だが事実上の標準）。自アカウントのクッキーで認証し、複数アカウントのレートリミットを自動ローテーション。
 - **トレンド調査が目的**。YouTube 版と違い「伸びている判定」を行う（いいね/RT/引用数を取得）。
 - **検索は単一クエリ**。指示文から LLM が検索クエリを 1 つ生成し、`twscrape.search` で 1 回検索。
+- **選定は「いいね数順」**。検索結果を一度大きなプール（`--max-results` と `search_pool_size` の大きい方、既定 50 件）で取得し、いいね数の多い順に並べ替えて上位 `--max-results` 件をレポート対象とする。
 - **コンテキスト取得**: 各ツイートについて親ツイート（スレッド）と代表リプライを追加取得し、文脈を補完（YouTube の「字幕取得」に相当）。
 - **インターフェースは CLI のみ**。
 - **CLI 実行時は各ノードの進捗を stderr へ出力**。最終レポート（stdout）と分離する。
@@ -43,6 +44,10 @@ uv run python -m x_trend_researcher \
 # 投稿日で絞り込み（自然言語でも可: 「半年以内」「3ヶ月以内」「1年以内」「今年」等）
 uv run python -m x_trend_researcher \
   "半年以内に公開された機械学習の基礎投稿" --max-results 3 --output recent.md
+
+# いいね数の多い順に上位を採用（既定: 検索プール 50 件からいいね順に --max-results 件）
+uv run python -m x_trend_researcher \
+  "Claude Code の使い方" --max-results 10 --output popular.md
 ```
 
 ### オプション

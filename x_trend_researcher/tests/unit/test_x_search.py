@@ -88,5 +88,47 @@ def test_search_tweets_top_n():
          mock.patch("x_trend_researcher.tools.x_search.gather", _fake_gather):
         candidates = search_tweets("test", max_results=5)
     assert len(candidates) == 5
-    assert candidates[0].tweet_id == "1"
-    assert candidates[4].tweet_id == "5"
+
+
+def test_sort_by_likes_orders_descending_and_renumbers():
+    from x_trend_researcher.models import TweetCandidate
+    from x_trend_researcher.nodes.search_tweets import _sort_by_likes
+
+    cands = [
+        TweetCandidate(tweet_id="a", like_count=10, relevance_rank=1),
+        TweetCandidate(tweet_id="b", like_count=300, relevance_rank=2),
+        TweetCandidate(tweet_id="c", like_count=50, relevance_rank=3),
+        TweetCandidate(tweet_id="d", like_count=None, relevance_rank=4),
+    ]
+    ordered = _sort_by_likes(cands)
+    assert [c.tweet_id for c in ordered] == ["b", "c", "a", "d"]
+    assert [c.relevance_rank for c in ordered] == [1, 2, 3, 4]
+    # None は 0 として扱われ、末尾に回る
+    assert ordered[-1].like_count is None
+
+
+def test_sort_by_likes_takes_top_n():
+    from x_trend_researcher.models import TweetCandidate
+    from x_trend_researcher.nodes.search_tweets import search_tweets_node
+    from x_trend_researcher.models import ResearchInstruction
+
+    pool = [
+        TweetCandidate(tweet_id=f"t{i}", like_count=i * 5, relevance_rank=i)
+        for i in range(1, 61)  # 60 件のプール
+    ]
+
+    def _fake_search(query, max_results=50, accounts_db="accounts.db"):
+        return pool[:max_results]
+
+    with mock.patch("x_trend_researcher.nodes.search_tweets.search_tweets", _fake_search), \
+         mock.patch("x_trend_researcher.nodes.search_tweets.get_config") as cfg:
+        cfg.return_value.search_pool_size = 50
+        instruction = ResearchInstruction(raw_text="test", topic="test", max_results=10)
+        state = search_tweets_node({"instruction": instruction, "search_query": "python"})
+
+    cands = state["candidates"]
+    assert len(cands) == 10
+    likes = [c.like_count for c in cands]
+    assert likes == sorted(likes, reverse=True)  # いいね順
+    assert likes[0] == 250  # 取得プール最大の 50*5=250
+    assert likes[-1] == 205  # 11 番目に大きい 41*5=205

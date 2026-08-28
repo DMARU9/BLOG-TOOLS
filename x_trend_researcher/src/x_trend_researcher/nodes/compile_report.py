@@ -33,6 +33,9 @@ def compile_report(state: State) -> State:
     if published_after is not None:
         notes.append(f"投稿日フィルタ: {published_after.date()} 以降に公開された投稿を対象")
 
+    # いいね数順に選定した旨を notes に記録
+    notes.append("選定基準: 検索プールからいいね数の多い順に上位 N 件を採用")
+
     # 候補 0 件時はその旨を記録（後続のスレッド取得・要約はスキップ済み）
     if not candidates:
         notes.append("該当するツイートが見つかりませんでした（検索クエリまたは期間フィルタの条件に一致する投稿なし）。")
@@ -62,7 +65,7 @@ def compile_report(state: State) -> State:
 
 
 def _render_candidates_table(report: ResearchReport) -> list[str]:
-    lines = ["## 選定ツイートリスト（関連度順上位 N 件）", ""]
+    lines = ["## 選定ツイートリスト（いいね数順上位 N 件）", ""]
     lines.append("| # | 本文抜粋 | 投稿者 | いいね | RT | 引用 | URL |")
     lines.append("|---|----------|--------|--------|----|------|-----|")
     for c in report.candidates:

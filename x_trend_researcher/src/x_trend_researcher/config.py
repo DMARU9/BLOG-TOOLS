@@ -27,6 +27,8 @@ class Config(BaseModel):
     openai_base_url: str = Field(default="https://opencode.ai/zen/go/v1")
     model: str = Field(default="openai:mimo-v2.5")
     max_results: int = Field(default=5)
+    # いいね順ソート用に検索で取得するプールサイズ（最少値。実際は max(pool, max_results) で取得）
+    search_pool_size: int = Field(default=50)
     cache_dir: Path = Field(default_factory=lambda: _PACKAGE_ROOT / "cache")
     max_retries: int = Field(default=3)
     accounts_db: Path = Field(default_factory=lambda: _PACKAGE_ROOT / "accounts.db")
@@ -45,6 +47,7 @@ class Config(BaseModel):
             openai_base_url=os.getenv("OPENAI_BASE_URL", "https://opencode.ai/zen/go/v1"),
             model=os.getenv("XTR_MODEL", "openai:mimo-v2.5"),
             max_results=int(os.getenv("XTR_MAX_RESULTS", "5")),
+            search_pool_size=int(os.getenv("XTR_SEARCH_POOL_SIZE", "50")),
             cache_dir=Path(cache_dir) if cache_dir else Path(os.getenv("XTR_CACHE_DIR", str(_PACKAGE_ROOT / "cache"))),
             max_retries=int(os.getenv("XTR_MAX_RETRIES", "3")),
             accounts_db=Path(os.getenv("XTR_ACCOUNTS_DB", str(_PACKAGE_ROOT / "accounts.db"))),
