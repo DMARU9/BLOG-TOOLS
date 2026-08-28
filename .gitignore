@@ -39,3 +39,6 @@ htmlcov/
 
 # Logs
 *.log
+
+# tmp
+tmp/
