@@ -30,6 +30,8 @@ class ResearchInstruction(BaseModel):
     published_after: datetime | None = None
     # X 特有: トレンドワード探索モード（--trends で有効化）
     use_trends: bool = False
+    # 選定基準: "relevance"（関連度順・既定）または "likes"（いいね数順）
+    sort_by: str = "relevance"
 
 
 class TweetCandidate(BaseModel):

@@ -4,8 +4,9 @@
 
 - **データソースは `twscrape`**（非公式だが事実上の標準）。自アカウントのクッキーで認証し、複数アカウントのレートリミットを自動ローテーション。
 - **トレンド調査が目的**。YouTube 版と違い「伸びている判定」を行う（いいね/RT/引用数を取得）。
-- **検索は単一クエリ**。指示文から LLM が検索クエリを 1 つ生成し、`twscrape.search` で 1 回検索。
-- **選定は「いいね数順」**。検索結果を一度大きなプール（`--max-results` と `search_pool_size` の大きい方、既定 50 件）で取得し、いいね数の多い順に並べ替えて上位 `--max-results` 件をレポート対象とする。
+- **検索は複数クエリ**。指示文から LLM がトピックの側面を分解し、複数の検索クエリを生成。`twscrape.search` で各クエリを検索して結果をマージする。
+- **選定基準は「関連度順（既定）」**。各クエリの検索結果（関連度順）をマージし、重複を除いて上位 `--max-results` 件を採用。トピックに関連する投稿を網羅的に拾う。
+- **いいね数順はオプトイン**。`--sort likes` を指定すると、大きなプール（既定 50 件）からいいね数の多い順にソートして採用する（バズ把握用）。
 - **コンテキスト取得**: 各ツイートについて親ツイート（スレッド）と代表リプライを追加取得し、文脈を補完（YouTube の「字幕取得」に相当）。
 - **インターフェースは CLI のみ**。
 - **CLI 実行時は各ノードの進捗を stderr へ出力**。最終レポート（stdout）と分離する。
@@ -45,9 +46,13 @@ uv run python -m x_trend_researcher \
 uv run python -m x_trend_researcher \
   "半年以内に公開された機械学習の基礎投稿" --max-results 3 --output recent.md
 
-# いいね数の多い順に上位を採用（既定: 検索プール 50 件からいいね順に --max-results 件）
+# 関連度順（既定）で網羅的に拾う
 uv run python -m x_trend_researcher \
-  "Claude Code の使い方" --max-results 10 --output popular.md
+  "オタクの活動における困りごとを調査したい" --max-results 10 --output related.md
+
+# いいね数の多い順に上位を採用（バズ把握用）
+uv run python -m x_trend_researcher \
+  "Claude Code の使い方" --max-results 10 --sort likes --output popular.md
 ```
 
 ### オプション
@@ -59,6 +64,7 @@ uv run python -m x_trend_researcher \
 | `--max-results N` | `5` | 解析対象の投稿件数（関連度順上位 N 件） |
 | `--output PATH` | 標準出力 | レポート書き込み先ファイル |
 | `--since YYYY-MM-DD` | なし | 投稿日下限（この日以降に公開された投稿のみ対象） |
+| `--sort {relevance,likes}` | `relevance` | 選定基準（relevance=関連度順／likes=いいね数順） |
 | `--cache-dir PATH` | `cache/` | 中間成果物の永続化先 |
 | `--trends` | なし | トレンドワード探索モード（予約） |
 

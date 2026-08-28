@@ -26,6 +26,7 @@ class State(TypedDict, total=False):
     instruction: ResearchInstruction
     instruction_raw: str
     search_query: str
+    search_queries: list[str]
     published_after: datetime | None
     max_results: int
     output_format: OutputFormat

@@ -33,8 +33,9 @@ def compile_report(state: State) -> State:
     if published_after is not None:
         notes.append(f"投稿日フィルタ: {published_after.date()} 以降に公開された投稿を対象")
 
-    # いいね数順に選定した旨を notes に記録
-    notes.append("選定基準: 検索プールからいいね数の多い順に上位 N 件を採用")
+    # 選定基準を notes に記録
+    sort_label = "いいね数の多い順" if (instruction.sort_by or "relevance") == "likes" else "検索の関連度順"
+    notes.append(f"選定基準: 検索結果から{sort_label}に上位 N 件を採用")
 
     # 候補 0 件時はその旨を記録（後続のスレッド取得・要約はスキップ済み）
     if not candidates:

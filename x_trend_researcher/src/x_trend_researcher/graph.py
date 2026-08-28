@@ -88,6 +88,7 @@ def run(
     since: datetime | None = None,
     use_trends: bool = False,
     cache_dir: str | None = None,
+    sort_by: str = "relevance",
 ) -> ResearchReport:
     """自然言語指示から自律的にリサーチを実行し、ResearchReport を返す。
 
@@ -98,6 +99,7 @@ def run(
         since: 投稿日下限（任意、CLI --since 用）。
         use_trends: トレンドワード探索モード（任意）。
         cache_dir: 中間成果物の永続化先（任意、FR-012）。
+        sort_by: 選定基準（"relevance"=関連度順 / "likes"=いいね順）。
 
     Returns:
         完成（またはタイムアウト時は部分的な）ResearchReport。
@@ -110,6 +112,7 @@ def run(
     if since is not None:
         instruction.published_after = since
     instruction.use_trends = use_trends
+    instruction.sort_by = sort_by
 
     initial_state: State = {
         "instruction_raw": instruction_text,
@@ -119,6 +122,8 @@ def run(
         "use_trends": use_trends,
         "cache_dir": cache_dir,
     }
+
+    # sort_by は instruction に含まれる（run() 呼び出し元がセット）
 
     # SIGALRM による全体時間監視（Linux のみ）
     timeouted = False

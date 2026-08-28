@@ -37,6 +37,12 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="トレンドワード探索モード（予約。現在は通常検索と同じ）",
     )
+    parser.add_argument(
+        "--sort",
+        choices=["relevance", "likes"],
+        default="relevance",
+        help="選定基準（既定: relevance＝検索の関連度順。likes＝いいね数順）",
+    )
     return parser.parse_args(argv)
 
 
@@ -71,6 +77,7 @@ def main(argv: list[str] | None = None) -> int:
             since=since,
             use_trends=args.trends,
             cache_dir=str(config.cache_dir),
+            sort_by=args.sort,
         )
     except Exception as exc:  # noqa: BLE001 - FR-011: すべての実行時エラーをユーザーに通知
         print(f"[エラー] リサーチ実行中に問題が発生しました: {exc}", file=sys.stderr, flush=True)

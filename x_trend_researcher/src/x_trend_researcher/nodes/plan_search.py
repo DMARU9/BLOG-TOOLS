@@ -1,4 +1,4 @@
-"""plan_search ノード（FR-003 対応、単一クエリ生成）。"""
+"""plan_search ノード（FR-003 対応、複数クエリ生成）。"""
 
 from __future__ import annotations
 
@@ -23,13 +23,16 @@ def _clean_query(query: str) -> str:
 
 
 def plan_search(state: State) -> State:
-    """指示から検索クエリを 1 つ生成する（LLM に委ねる）。
+    """指示から検索クエリを複数生成する（LLM に委ねる）。
+
+    トピックを複数の側面に分解し、側面ごとに 1〜3 個のクエリを生成。
+    1 行 1 クエリとして返し、ここでリスト化する。
 
     Args:
         state: `instruction` を含む State。
 
     Returns:
-        更新された State（search_query をセット）。
+        更新された State（search_queries をセット）。
     """
     emitter = make_emitter()
     emitter.emit(2, NODE_PLAN_SEARCH, "開始", detail="LLM が検索クエリを生成中")
@@ -53,8 +56,14 @@ def plan_search(state: State) -> State:
     model = build_model("research")
     prompt = PLAN_SEARCH_PROMPT.format(topic=search_topic, date_hint=date_hint)
     result = model.invoke(prompt)
-    query = result.content if hasattr(result, "content") else str(result)
-    query = _clean_query(query)
+    raw = result.content if hasattr(result, "content") else str(result)
 
-    emitter.emit(2, NODE_PLAN_SEARCH, "完了", detail=f'クエリ: "{query}"')
-    return {"search_query": query}
+    # LLM は 1 行 1 クエリで出力する。空行・番号・記号を除去して複数クエリ化。
+    queries: list[str] = []
+    for line in raw.splitlines():
+        q = _clean_query(line)
+        if q:
+            queries.append(q)
+
+    emitter.emit(2, NODE_PLAN_SEARCH, "完了", detail=f'クエリ {len(queries)} 件: {", ".join(queries)}')
+    return {"search_queries": queries}

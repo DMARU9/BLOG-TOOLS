@@ -1,4 +1,4 @@
-"""tools/x_search.py の単体テスト（twscrape をモック）。"""
+"""tools/x_search.py と search_tweets ノードの単体テスト（twscrape をモック）。"""
 
 from datetime import datetime, timezone
 from unittest import mock
@@ -107,7 +107,37 @@ def test_sort_by_likes_orders_descending_and_renumbers():
     assert ordered[-1].like_count is None
 
 
-def test_sort_by_likes_takes_top_n():
+def test_relevance_sort_keeps_search_order_and_dedupes():
+    from x_trend_researcher.models import TweetCandidate
+    from x_trend_researcher.nodes.search_tweets import search_tweets_node
+    from x_trend_researcher.models import ResearchInstruction
+
+    # クエリごとに異なる順序のプールを返す
+    pool_a = [TweetCandidate(tweet_id=f"a{i}", like_count=100 - i, relevance_rank=i) for i in range(1, 6)]
+    pool_b = [TweetCandidate(tweet_id=f"b{i}", like_count=50 - i, relevance_rank=i) for i in range(1, 6)]
+    # 重複する ID を含める
+    pool_b.append(TweetCandidate(tweet_id="a1", like_count=0, relevance_rank=99))
+
+    def _fake_search(query, max_results=5, accounts_db="accounts.db"):
+        return pool_a if query == "q1" else pool_b
+
+    with mock.patch("x_trend_researcher.nodes.search_tweets.search_tweets", _fake_search), \
+         mock.patch("x_trend_researcher.nodes.search_tweets.get_config") as cfg:
+        cfg.return_value.search_pool_size = 50
+        instruction = ResearchInstruction(raw_text="test", topic="test", max_results=10, sort_by="relevance")
+        state = search_tweets_node({"instruction": instruction, "search_queries": ["q1", "q2"]})
+
+    cands = state["candidates"]
+    ids = [c.tweet_id for c in cands]
+    assert len(cands) == 10
+    assert "a1" in ids
+    assert ids.count("a1") == 1  # 重複除去
+    # 関連度順（取得順）を維持: a1..a5 の後に b1..b5
+    assert ids[:5] == [f"a{i}" for i in range(1, 6)]
+    assert ids[5:] == [f"b{i}" for i in range(1, 6)]
+
+
+def test_likes_sort_takes_top_n_by_likes():
     from x_trend_researcher.models import TweetCandidate
     from x_trend_researcher.nodes.search_tweets import search_tweets_node
     from x_trend_researcher.models import ResearchInstruction
@@ -123,8 +153,8 @@ def test_sort_by_likes_takes_top_n():
     with mock.patch("x_trend_researcher.nodes.search_tweets.search_tweets", _fake_search), \
          mock.patch("x_trend_researcher.nodes.search_tweets.get_config") as cfg:
         cfg.return_value.search_pool_size = 50
-        instruction = ResearchInstruction(raw_text="test", topic="test", max_results=10)
-        state = search_tweets_node({"instruction": instruction, "search_query": "python"})
+        instruction = ResearchInstruction(raw_text="test", topic="test", max_results=10, sort_by="likes")
+        state = search_tweets_node({"instruction": instruction, "search_queries": ["python"]})
 
     cands = state["candidates"]
     assert len(cands) == 10
