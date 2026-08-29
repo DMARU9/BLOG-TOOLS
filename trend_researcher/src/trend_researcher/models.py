@@ -69,6 +69,9 @@ class Context(BaseModel):
     text: str = ""  # 親ツイート本文 / 字幕テキスト
     thread_text: str = ""  # X のみ
     replies: list[str] = Field(default_factory=list)  # X のみ
+    # 検索結果の like_count 等が 0 で埋まる場合があるため、tweet_details で確定した
+    # 正確なカウントを一時保持する（fetch_contexts で Candidate に反映後に参照）
+    counts: dict[str, int | None] | None = None  # {"like_count", "retweet_count", ...}
 
 
 class TranscriptSource(str, Enum):

@@ -50,5 +50,11 @@ def plan_search(state: State) -> State:
         if q:
             queries.append(q)
 
+    # クエリ数のハード上限（X のみ適用）。LLM が 5 件を守らなくても安全に切り詰める。
+    # YouTube は「単一クエリ」設計（呼び出し元で先頭1件のみ使用）のため制限しない。
+    platform = (instruction.platform or "x").lower()
+    if platform == "x" and len(queries) > 8:
+        queries = queries[:8]
+
     emitter.emit(2, NODE_PLAN_SEARCH, "完了", detail=f'クエリ {len(queries)} 件: {", ".join(queries)}')
     return {"search_queries": queries}

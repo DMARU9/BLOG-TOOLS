@@ -44,21 +44,45 @@ def _tweet_to_candidate(tweet: Tweet, rank: int) -> Candidate:
     )
 
 
-async def _search_async(query: str, max_results: int, accounts_db: str) -> list[Candidate]:
-    """単一検索し、関連度順上位 N 件を Candidate に変換する。"""
+async def _search_async(
+    query: str,
+    max_results: int,
+    accounts_db: str,
+    max_retries: int = 3,
+) -> list[Candidate]:
+    """単一検索し、関連度順（Top タブ）の Candidate を取得する。
+
+    取得したツイートはそのまま返す（呼び出し側で「いいね昇順ソート＋本文欠落除外＋
+    max_results 件数確保」を行う）。max_results より多めに取得しておくことで、
+    本文欠落分を除外しても目標件数を満たしやすくする。
+    """
+    # レート制限等で空振りしないよう、少し多めに取得する
+    fetch_limit = max(max_results * 2, max_results + 20)
     api = API(accounts_db)
-    tweets = await gather(api.search(query, limit=max_results))
-    candidates: list[Candidate] = []
-    for rank, tweet in enumerate(tweets, start=1):
-        candidates.append(_tweet_to_candidate(tweet, rank))
-        if len(candidates) >= max_results:
-            break
-    return candidates
+    last_exc: Exception | None = None
+    for attempt in range(max_retries):
+        try:
+            tweets = await gather(api.search(query, limit=fetch_limit, kv={"product": "Top"}))
+            candidates: list[Candidate] = []
+            for rank, tweet in enumerate(tweets, start=1):
+                candidates.append(_tweet_to_candidate(tweet, rank))
+            return candidates
+        except Exception as exc:  # noqa: BLE001 - リトライ後に上位へ伝播
+            last_exc = exc
+            await asyncio.sleep(2 ** attempt)
+    if last_exc is not None:
+        raise last_exc
+    return []
 
 
-def search_tweets(query: str, max_results: int = 5, accounts_db: str = "accounts.db") -> list[Candidate]:
-    """同期ラッパ: 単一検索で関連度順上位 N 件を選定する。"""
-    return asyncio.run(_search_async(query, max_results, accounts_db))
+def search_tweets(
+    query: str,
+    max_results: int = 5,
+    accounts_db: str = "accounts.db",
+    max_retries: int = 3,
+) -> list[Candidate]:
+    """同期ラッパ: 単一検索で関連度順（Top タブ）の Candidate を取得する。"""
+    return asyncio.run(_search_async(query, max_results, accounts_db, max_retries))
 
 
 async def _fetch_context_async(tweet_id: str, accounts_db: str, max_replies: int = 3) -> Context:
@@ -71,6 +95,13 @@ async def _fetch_context_async(tweet_id: str, accounts_db: str, max_replies: int
         main = await api.tweet_details(int(tweet_id))
         if main is not None:
             ctx.text = (main.rawContent or "").strip()
+            # 検索結果では 0 で埋まることがある正確なカウントを保持
+            ctx.counts = {
+                "like_count": int(main.likeCount) if main.likeCount is not None else None,
+                "retweet_count": int(main.retweetCount) if main.retweetCount is not None else None,
+                "reply_count": int(main.replyCount) if main.replyCount is not None else None,
+                "quote_count": int(main.quoteCount) if main.quoteCount is not None else None,
+            }
             # 親ツイート（会話ルート）があればスレッド本文として取り込む
             if getattr(main, "inReplyToTweetId", None):
                 try:

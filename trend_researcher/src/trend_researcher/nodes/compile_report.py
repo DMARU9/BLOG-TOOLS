@@ -27,7 +27,8 @@ def compile_report(state: State) -> State:
         notes.append(f"投稿日フィルタ: {published_after.date()} 以降に公開された投稿を対象")
 
     if provider.name == "x":
-        sort_label = "いいね数の多い順" if (instruction.sort_by or "relevance") == "likes" else "検索の関連度順"
+        # relevance モードは fetch 後に「いいね昇順」で並べ替えるため、ラベルもそれに合わせる
+        sort_label = "いいね数の多い順" if (instruction.sort_by or "relevance") == "likes" else "いいね数の少ない順"
         notes.append(f"選定基準: 検索結果から{sort_label}に上位 N 件を採用")
     else:
         notes.append("選定基準: 検索結果の関連度順に上位 N 件を採用")
@@ -60,7 +61,7 @@ def compile_report(state: State) -> State:
 
 
 def _render_candidates_table(report: ResearchReport, provider: "Provider") -> list[str]:  # noqa: F821
-    title_line = "## 選定ツイートリスト（いいね数順上位 N 件）" if provider.name == "x" else "## 選定動画リスト（関連度順上位 N 件）"
+    title_line = "## 選定ツイートリスト（上位 N 件）" if provider.name == "x" else "## 選定動画リスト（関連度順上位 N 件）"
     lines = [title_line, ""]
     head, sep = provider.candidate_table_header()
     lines.append(head)

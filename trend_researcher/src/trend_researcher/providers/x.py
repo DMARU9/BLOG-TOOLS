@@ -47,9 +47,20 @@ class XProvider:
             ordered = _sort_by_likes(pool)
             candidates = ordered[:max_results]
         else:
+            # 関連度順（Top タブ）で取得し、本文欠落分を除外しても max_results 件
+            # 確保できるようプールを多めに取る。ただし search_pool_size（likes 用の 50）は
+            # 使わず小さなバッファに留め、1アカウント当たりの検索リクエストを抑える。
+            pool_size = max(max_results * 3, max_results + 20)
             pool: list[Candidate] = []
             for q in queries:
-                pool.extend(search_tweets(q, max_results=max_results, accounts_db=str(config.accounts_db)))
+                pool.extend(
+                    search_tweets(
+                        q,
+                        max_results=pool_size,
+                        accounts_db=str(config.accounts_db),
+                        max_retries=config.max_retries,
+                    )
+                )
             # 重複（id）を除去し、取得順（関連度順）を維持
             seen: set[str] = set()
             ordered = []
@@ -57,8 +68,25 @@ class XProvider:
                 if c.id not in seen:
                     seen.add(c.id)
                     ordered.append(c)
+            # いいね昇順の並び替えは fetch 後（tweet_details で正確な like_count が
+            # 確定した後）に resort() で行うため、ここでは取得順のまま截断する
             candidates = ordered[:max_results]
         return candidates
+
+    def resort(self, candidates: list[Candidate], sort_by: str) -> list[Candidate]:
+        """fetch 後（正確な like_count 確定後）に並び替える。
+
+        sort_by=="likes" はいいね降順、それ以外（relevance）は「本文あり」のみを残して
+        いいね昇順に並べる。いいね数が同じ場合は取得時の relevance_rank 順を維持する。
+        """
+        if sort_by == "likes":
+            ordered = sorted(candidates, key=lambda c: (c.like_count or 0), reverse=True)
+        else:
+            with_text = [c for c in candidates if (c.text or "").strip()]
+            ordered = sorted(with_text, key=lambda c: (c.like_count or 0, c.relevance_rank))
+        for rank, c in enumerate(ordered, start=1):
+            c.relevance_rank = rank
+        return ordered
 
     def fetch_contexts(self, candidates: list[Candidate], config: Config) -> tuple[list[Context], list[str]]:
         notes: list[str] = []
@@ -66,6 +94,16 @@ class XProvider:
             return [], notes
         try:
             contexts = fetch_threads(candidates, accounts_db=str(config.accounts_db))
+            # 検索結果（SearchTimeline）では like_count 等が 0 で埋まることがあるため、
+            # tweet_details で取得した正確なカウントで候補を上書きする
+            by_id = {c.id: c for c in candidates}
+            for ctx in contexts:
+                cand = by_id.get(ctx.id)
+                if cand is not None and ctx.counts is not None:
+                    cand.like_count = ctx.counts.get("like_count")
+                    cand.retweet_count = ctx.counts.get("retweet_count")
+                    cand.reply_count = ctx.counts.get("reply_count")
+                    cand.quote_count = ctx.counts.get("quote_count")
         except Exception as exc:  # noqa: BLE001 - コンテキスト取得失敗は本文のみで解析
             notes.append(f"スレッド取得に失敗しました（本文のみで解析）: {exc}")
             contexts = [Context(id=c.id, text=c.text) for c in candidates]

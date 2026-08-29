@@ -14,7 +14,13 @@ def fetch_node(state: State) -> State:
     provider = state["provider"]
     config = state.get("config")
     candidates = state.get("candidates", [])
+    instruction = state.get("instruction")
+    sort_by = (instruction.sort_by if instruction else None) or "relevance"
     contexts, notes = provider.fetch_contexts(candidates, config)
+
+    # tweet_details で正確な like_count 等が確定したので、fetch 後に並び替える
+    if candidates:
+        candidates = provider.resort(candidates, sort_by)
 
     notes = list(state.get("notes", [])) + notes
     no_context = sum(1 for c in contexts if not c.text.strip() and not c.thread_text and not c.replies)
@@ -24,4 +30,4 @@ def fetch_node(state: State) -> State:
         "完了",
         detail=f"コンテキスト取得 {len(contexts)} 件（追加文脈なし {no_context} 件）",
     )
-    return {"contexts": contexts, "notes": notes}
+    return {"candidates": candidates, "contexts": contexts, "notes": notes}
