@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environment
+.venv/
+venv/
+
+# Local secrets / env
+.env
+
+# Runtime cache (used by the app)
+cache/
+
+# Structure analysis output (script/analyze_structure.py)
+artifacts/
+
+# OS / editor noise
+.DS_Store
+
+# twscrape account DB
+*.db
