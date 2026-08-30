@@ -66,16 +66,10 @@ def compile_report(state: AgentState, config: RunnableConfig) -> dict:
 
     progress_messages.extend(emitter.get_messages())
 
-    # レポートをチャット表示用に渲染して messages に追加
+    # チャット表示用は常に Markdown で描画（CLI の出力形式指定は影響しない）
     from langchain_core.messages import AIMessage
 
-    output_fmt = configurable.output_format or (
-        report.instruction.output.format if report.instruction.output else None
-    )
-    if output_fmt == "json":
-        rendered = render_json(report)
-    else:
-        rendered = render_markdown(report, provider)
+    rendered = render_markdown(report, provider)
 
     summary = f"レポート完了: {len(candidates)} 件の候補を分析し、{len(common_themes)} 件の共通テーマを抽出しました。"
     progress_messages.append(AIMessage(content=summary))
