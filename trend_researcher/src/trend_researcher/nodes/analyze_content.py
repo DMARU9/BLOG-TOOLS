@@ -103,6 +103,7 @@ def analyze_content(state: AgentState, config: RunnableConfig | None = None) -> 
     configurable = Configuration.from_runnable_config(config)
     emitter = make_emitter()
     emitter.emit(5, NODE_ANALYZE_CONTENT, "開始", detail="並列上限 2")
+    progress_messages = emitter.get_messages()
 
     provider = state["provider"]
     candidates = state.get("candidates", [])
@@ -110,4 +111,5 @@ def analyze_content(state: AgentState, config: RunnableConfig | None = None) -> 
     analyses = asyncio.run(_analyze_all(candidates, contexts_by_id, provider))
 
     emitter.emit(5, NODE_ANALYZE_CONTENT, "完了", detail=f"{len(analyses)} 件を要約")
-    return {"analyses": analyses}
+    progress_messages.extend(emitter.get_messages())
+    return {"analyses": analyses, "messages": progress_messages}

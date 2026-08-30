@@ -31,6 +31,7 @@ def extract_common(state: AgentState, config: RunnableConfig | None = None) -> d
     provider = state["provider"]
     emitter = make_emitter()
     emitter.emit(6, NODE_EXTRACT_COMMON, "開始")
+    progress_messages = emitter.get_messages()
 
     analyses = state.get("analyses", [])
     model = build_model("research")
@@ -41,7 +42,8 @@ def extract_common(state: AgentState, config: RunnableConfig | None = None) -> d
     themes = _parse_themes(text, [a.id for a in analyses])
 
     emitter.emit(6, NODE_EXTRACT_COMMON, "完了", detail=f"{len(themes)} 件の共通テーマ")
-    return {"common_themes": themes}
+    progress_messages.extend(emitter.get_messages())
+    return {"common_themes": themes, "messages": progress_messages}
 
 
 def _split_sections(text: str) -> list[list[str]]:

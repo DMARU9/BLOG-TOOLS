@@ -8,12 +8,12 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
 from trend_researcher.configuration import Configuration
 from trend_researcher.config import Config
-from trend_researcher.graph import render_report, trend_researcher
+from trend_researcher.graph import EXECUTION_TIMEOUT, render_report, trend_researcher
 from trend_researcher.models import OutputFormat
 from trend_researcher.providers import available_platforms
 
@@ -104,7 +104,10 @@ async def _run_async(args: argparse.Namespace, config: Config) -> dict:
         "cache_dir": str(config.cache_dir),
     }
 
-    return await trend_researcher.ainvoke(initial_state, runnable_config)
+    return await asyncio.wait_for(
+        trend_researcher.ainvoke(initial_state, runnable_config),
+        timeout=EXECUTION_TIMEOUT.total_seconds(),
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -132,6 +135,14 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         result = asyncio.run(_run_async(args, config))
+    except asyncio.TimeoutError:
+        print(
+            f"[警告] リサーチが時間上限（{int(EXECUTION_TIMEOUT.total_seconds() / 60)}分）に達しました。途中結果を返します。",
+            file=sys.stderr,
+            flush=True,
+        )
+        # タイムアウト時は途中結果がないため、空のレポートを返す
+        return 1
     except Exception as exc:  # noqa: BLE001
         print(f"[エラー] リサーチ実行中に問題が発生しました: {exc}", file=sys.stderr, flush=True)
         return 1

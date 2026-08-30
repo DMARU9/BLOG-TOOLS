@@ -29,6 +29,7 @@ def plan_search(state: AgentState, config: RunnableConfig | None = None) -> dict
     provider = state["provider"]
     emitter = make_emitter()
     emitter.emit(2, NODE_PLAN_SEARCH, "開始", detail="LLM が検索クエリを生成中")
+    progress_messages = emitter.get_messages()
 
     instruction = state["instruction"]
     search_topic = re.sub(r"[（(].*?[）)]", "", instruction.topic or instruction.raw_text)
@@ -61,4 +62,5 @@ def plan_search(state: AgentState, config: RunnableConfig | None = None) -> dict
         queries = queries[:8]
 
     emitter.emit(2, NODE_PLAN_SEARCH, "完了", detail=f'クエリ {len(queries)} 件: {", ".join(queries)}')
-    return {"search_queries": queries}
+    progress_messages.extend(emitter.get_messages())
+    return {"search_queries": queries, "messages": progress_messages}

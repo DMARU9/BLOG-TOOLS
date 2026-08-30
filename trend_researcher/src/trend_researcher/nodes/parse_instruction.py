@@ -81,6 +81,7 @@ def parse_instruction(state: AgentState, config: RunnableConfig | None = None) -
     provider = state.get("provider")
     emitter = make_emitter()
     emitter.emit(1, NODE_PARSE_INSTRUCTION, "開始")
+    progress_messages = emitter.get_messages()
 
     raw = state.get("instruction_raw", "")
     model = build_model("research")
@@ -129,4 +130,5 @@ def parse_instruction(state: AgentState, config: RunnableConfig | None = None) -
     )
 
     emitter.emit(1, NODE_PARSE_INSTRUCTION, "完了", detail=f'トピック: "{topic}" / 件数: {max_results}')
-    return {"instruction": instruction}
+    progress_messages.extend(emitter.get_messages())
+    return {"instruction": instruction, "messages": progress_messages}

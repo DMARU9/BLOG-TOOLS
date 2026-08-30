@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from langchain_core.messages import AIMessage
 from langchain_core.runnables import RunnableConfig
 
 from trend_researcher.configuration import Configuration
@@ -14,6 +15,7 @@ def search_node(state: AgentState, config: RunnableConfig | None = None) -> dict
     configurable = Configuration.from_runnable_config(config)
     emitter = make_emitter()
     emitter.emit(3, NODE_SEARCH, "開始")
+    progress_messages = emitter.get_messages()
 
     provider = state["provider"]
     instruction = state["instruction"]
@@ -30,4 +32,7 @@ def search_node(state: AgentState, config: RunnableConfig | None = None) -> dict
     )
 
     emitter.emit(3, NODE_SEARCH, "完了", detail=f"{len(candidates)} 件を選定")
-    return {"candidates": candidates, "published_after": instruction.published_after}
+    progress_messages.extend(emitter.get_messages())
+    # 検索クエリをユーザーに表示
+    progress_messages.append(AIMessage(content=f"検索クエリ: {', '.join(queries)}"))
+    return {"candidates": candidates, "published_after": instruction.published_after, "messages": progress_messages}

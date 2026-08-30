@@ -18,6 +18,7 @@ def compile_report(state: AgentState, config: RunnableConfig | None = None) -> d
     configurable = Configuration.from_runnable_config(config)
     emitter = make_emitter()
     emitter.emit(7, NODE_COMPILE_REPORT, "開始")
+    progress_messages = emitter.get_messages()
 
     provider = state["provider"]
     instruction = state["instruction"]
@@ -61,7 +62,13 @@ def compile_report(state: AgentState, config: RunnableConfig | None = None) -> d
         except Exception as exc:  # noqa: BLE001
             emitter.emit(7, NODE_COMPILE_REPORT, f"キャッシュ書き込み失敗: {exc}")
 
-    return {"report": report}
+    progress_messages.extend(emitter.get_messages())
+    # レポート完了メッセージを追加
+    from langchain_core.messages import AIMessage
+
+    summary = f"レポート完了: {len(candidates)} 件の候補を分析し、{len(common_themes)} 件の共通テーマを抽出しました。"
+    progress_messages.append(AIMessage(content=summary))
+    return {"report": report, "messages": progress_messages}
 
 
 def _render_candidates_table(report: ResearchReport, provider: "Provider") -> list[str]:  # noqa: F821

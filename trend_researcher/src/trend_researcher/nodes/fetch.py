@@ -14,6 +14,7 @@ def fetch_node(state: AgentState, config: RunnableConfig | None = None) -> dict:
     configurable = Configuration.from_runnable_config(config)
     emitter = make_emitter()
     emitter.emit(4, NODE_FETCH, "開始")
+    progress_messages = emitter.get_messages()
 
     provider = state["provider"]
     cfg = state.get("config")
@@ -34,4 +35,5 @@ def fetch_node(state: AgentState, config: RunnableConfig | None = None) -> dict:
         "完了",
         detail=f"コンテキスト取得 {len(contexts)} 件（追加文脈なし {no_context} 件）",
     )
-    return {"candidates": candidates, "contexts": contexts, "notes": notes}
+    progress_messages.extend(emitter.get_messages())
+    return {"candidates": candidates, "contexts": contexts, "notes": notes, "messages": progress_messages}
