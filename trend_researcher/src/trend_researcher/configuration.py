@@ -10,7 +10,7 @@ class Configuration(BaseModel):
     """LangGraph Studio UI でパラメータ変更に対応する設定クラス。"""
 
     platform: str = Field(default="x", description="対象プラットフォーム（x/youtube）")
-    output_format: str = Field(default="markdown", description="出力形式（markdown/json）")
+    output_format: str | None = Field(default=None, description="出力形式（markdown/json）。未設定時は LLM が判断。")
     max_results: int = Field(default=5, description="解析対象件数")
     sort_by: str = Field(default="relevance", description="選定基準（relevance/likes）")
     transcript_language: str = Field(default="ja", description="字幕優先言語")

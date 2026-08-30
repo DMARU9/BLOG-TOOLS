@@ -41,7 +41,7 @@ class TestConfiguration:
         """デフォルト値が正しく設定されること。"""
         config = Configuration()
         assert config.platform == "x"
-        assert config.output_format == "markdown"
+        assert config.output_format is None  # 未設定時は LLM が判断
         assert config.max_results == 5
         assert config.sort_by == "relevance"
         assert config.transcript_language == "ja"

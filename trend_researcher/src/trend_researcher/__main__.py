@@ -27,8 +27,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--platform",
         choices=available_platforms(),
-        default="x",
-        help="対象プラットフォーム（x=X/Twitter、youtube=YouTube）。既定: x",
+        required=True,
+        help="対象プラットフォーム（x=X/Twitter、youtube=YouTube）",
     )
     parser.add_argument("--output", help="レポート書き込み先ファイル（省略時は stdout）")
     parser.add_argument(

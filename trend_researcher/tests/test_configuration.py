@@ -12,7 +12,7 @@ class TestConfigurationInit:
         """全フィールドのデフォルト値。"""
         c = Configuration()
         assert c.platform == "x"
-        assert c.output_format == "markdown"
+        assert c.output_format is None  # 未設定時は LLM が判断
         assert c.max_results == 5
         assert c.sort_by == "relevance"
         assert c.transcript_language == "ja"
@@ -73,7 +73,7 @@ class TestFromRunnableConfig:
         }
         c = Configuration.from_runnable_config(rc)
         assert c.platform == "youtube"
-        assert c.output_format == "markdown"  # デフォルト
+        assert c.output_format is None  # 未指定時は None（LLM が判断）
         assert c.max_results == 5  # デフォルト
 
     def test_with_empty_config(self):

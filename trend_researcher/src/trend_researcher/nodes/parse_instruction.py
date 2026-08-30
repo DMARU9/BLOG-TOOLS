@@ -106,7 +106,7 @@ def parse_instruction(state: AgentState, config: RunnableConfig) -> dict:
         nl = _extract_count_from_text(raw)
         max_results = nl if nl is not None else int(parsed.get("max_results", 5) or 5)
     # 出力形式: Configuration設定 > CLI/run（state.output_format）＞自然言語/LLM
-    if configurable.output_format != "markdown":  # Configuration設定がある場合
+    if configurable.output_format is not None:  # Configuration設定がある場合
         output_format = OutputFormat.JSON if configurable.output_format == "json" else OutputFormat.MARKDOWN
     else:
         cli_fmt = state.get("output_format")
