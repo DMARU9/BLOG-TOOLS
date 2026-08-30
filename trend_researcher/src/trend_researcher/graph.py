@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import signal
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 from langgraph.graph import END, StateGraph
 
-from trend_researcher.config import Config
-from trend_researcher.models import OutputFormat, ResearchInstruction, ResearchReport
 from trend_researcher.nodes.analyze_content import analyze_content
 from trend_researcher.nodes.compile_report import (
     compile_report,
@@ -54,37 +51,19 @@ def build_graph() -> Any:
     return graph.compile()
 
 
-# LangGraph Studio エントリポイント
-trend_researcher = build_graph()
-
-
-def _route_after_search(state: State) -> str:
+def _route_after_search(state: dict) -> str:
     candidates = state.get("candidates", [])
     return "skip" if not candidates else "continue"
 
 
-def _build_partial_report(instruction: ResearchInstruction, state: dict[str, Any]) -> ResearchReport:
-    candidates = state.get("candidates", [])
-    return ResearchReport(
-        instruction=instruction,
-        candidates=candidates,
-        analyses=state.get("analyses", []),
-        common_themes=state.get("common_themes", []),
-        sources=[c.url for c in candidates if c.url],
-        notes=list(state.get("notes", [])) + ["全体実行が時間上限に達したため、途中結果を返します。"],
-    )
+# LangGraph Studio エントリポイント
+trend_researcher = build_graph()
 
 
-class _TimeoutError(Exception):
-    pass
-
-
-def _timeout_handler(_signum: int, _frame: Any) -> None:
-    raise _TimeoutError("execution timeout")
-
-
-def render_report(report: ResearchReport) -> str:
+def render_report(report: "ResearchReport") -> str:
     """レポートを指示された形式（既定 markdown）で描画。"""
+    from trend_researcher.models import ResearchReport as _RR
+
     fmt = report.instruction.output.format
     if fmt == "json":
         return render_json(report)

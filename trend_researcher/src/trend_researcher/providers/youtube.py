@@ -42,6 +42,10 @@ class YouTubeProvider:
                 notes.append(f"字幕取得不可: {cand.title} ({cand.id}) - メタデータのみで解析")
         return contexts, notes
 
+    def resort(self, candidates: list[Candidate], sort_by: str) -> list[Candidate]:
+        """YouTube は既に関連度順にソート済みのため、順序を維持する。"""
+        return candidates
+
     def candidate_table_header(self) -> tuple[str, str]:
         return (
             "| # | タイトル | チャンネル | 再生数 | URL |",

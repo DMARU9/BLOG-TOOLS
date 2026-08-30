@@ -4,11 +4,15 @@
 が期待通りのレポートを产出することを確認する。
 """
 
+import asyncio
 from unittest import mock
 
 import pytest
+from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
 
-from trend_researcher.graph import render_report, run
+from trend_researcher.config import Config
+from trend_researcher.graph import render_report, trend_researcher
 from trend_researcher.models import (
     AnalysisFinding,
     Candidate,
@@ -17,6 +21,7 @@ from trend_researcher.models import (
     OutputFormat,
     ResearchReport,
 )
+from trend_researcher.providers import get_provider
 
 
 def _fake_candidates_x(n: int) -> list[Candidate]:
@@ -120,7 +125,7 @@ def patched_x():
         side_effect=_FakeModel,
     ), mock.patch(
         "trend_researcher.providers.x.search_tweets",
-        side_effect=lambda q, max_results=5, accounts_db="accounts.db": _fake_candidates_x(max_results),
+        side_effect=lambda q, max_results=5, accounts_db="accounts.db", **kw: _fake_candidates_x(max_results),
     ), mock.patch(
         "trend_researcher.providers.x.fetch_threads",
         side_effect=lambda cands, accounts_db="accounts.db": _fake_contexts(cands),
@@ -152,9 +157,41 @@ def patched_youtube():
         yield
 
 
+def _run_graph_sync(instruction: str, platform: str = "x", **kwargs) -> dict:
+    """テスト用の同期ラッパー: trend_researcher グラフを実行する。"""
+    provider = get_provider(platform)
+    config = Config.load(platform=platform, cache_dir=kwargs.get("cache_dir"), max_results=kwargs.get("max_results"))
+    output_format = kwargs.pop("output_format", OutputFormat.MARKDOWN)
+    initial_state = {
+        "messages": [HumanMessage(content=instruction)],
+        "provider": provider,
+        "config": config,
+        "instruction_raw": instruction,
+        "max_results": kwargs.get("max_results"),
+        "output_format": output_format,
+        "sort_by": kwargs.get("sort_by", "relevance"),
+        "transcript_language": kwargs.get("transcript_language", "ja"),
+        "use_trends": kwargs.get("use_trends", False),
+        "cache_dir": str(config.cache_dir),
+    }
+    runnable_config: RunnableConfig = {
+        "configurable": {
+            "platform": platform,
+            "output_format": output_format.value,
+            "max_results": kwargs.get("max_results", 5),
+            "sort_by": kwargs.get("sort_by", "relevance"),
+            "transcript_language": kwargs.get("transcript_language", "ja"),
+            "use_trends": kwargs.get("use_trends", False),
+            "cache_dir": str(config.cache_dir),
+        },
+    }
+    return trend_researcher.invoke(initial_state, runnable_config)
+
+
 # --- X: 既定 5 件・Markdown ---
 def test_x_default_markdown(patched_x):
-    report = run("オタクの活動における困りごとを調査したい", platform="x")
+    result = _run_graph_sync("オタクの活動における困りごとを調査したい", platform="x")
+    report = result["report"]
     assert isinstance(report, ResearchReport)
     assert report.instruction.platform == "x"
     assert len(report.candidates) == 5
@@ -168,19 +205,21 @@ def test_x_default_markdown(patched_x):
 
 # --- X: いいね順 ---
 def test_x_sort_likes(patched_x):
-    report = run("Claude Code の使い方", platform="x", sort_by="likes", max_results=5)
+    result = _run_graph_sync("Claude Code の使い方", platform="x", sort_by="likes", max_results=5)
+    report = result["report"]
     likes = [c.like_count for c in report.candidates]
     assert likes == sorted(likes, reverse=True)
 
 
 # --- YouTube: 件数指定・JSON ---
 def test_youtube_max_results_json(patched_youtube):
-    report = run(
+    result = _run_graph_sync(
         "機械学習チュートリアルを参考にブログを書きたい",
         platform="youtube",
         max_results=10,
         output_format=OutputFormat.JSON,
     )
+    report = result["report"]
     assert len(report.candidates) == 10
     assert report.instruction.output.format == OutputFormat.JSON
     rendered = render_report(report)
@@ -193,7 +232,8 @@ def test_youtube_max_results_json(patched_youtube):
 
 # --- YouTube: Markdown 表ヘッダ ---
 def test_youtube_markdown_table(patched_youtube):
-    report = run("Claude Code で会社を回す方法", platform="youtube")
+    result = _run_graph_sync("Claude Code で会社を回す方法", platform="youtube")
+    report = result["report"]
     md = render_report(report)
     assert "選定動画リスト" in md
     assert "チャンネル" in md
