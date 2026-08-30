@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import re
 
+from langchain_core.runnables import RunnableConfig
+
+from trend_researcher.configuration import Configuration
 from trend_researcher.progress import NODE_PLAN_SEARCH, make_emitter
-from trend_researcher.state import State
+from trend_researcher.state import AgentState
 from trend_researcher.tools.llm import build_model
 
 _YEAR_RE = re.compile(r"\b(19|20)\d{2}\b")
@@ -20,8 +23,9 @@ def _clean_query(query: str) -> str:
     return q
 
 
-def plan_search(state: State) -> State:
+def plan_search(state: AgentState, config: RunnableConfig | None = None) -> dict:
     """指示から検索クエリを生成する（X: 複数 / YouTube: 単一）。"""
+    configurable = Configuration.from_runnable_config(config)
     provider = state["provider"]
     emitter = make_emitter()
     emitter.emit(2, NODE_PLAN_SEARCH, "開始", detail="LLM が検索クエリを生成中")

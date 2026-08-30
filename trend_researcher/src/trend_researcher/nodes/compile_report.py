@@ -4,14 +4,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from langchain_core.runnables import RunnableConfig
+
 from trend_researcher.cache import write_json
+from trend_researcher.configuration import Configuration
 from trend_researcher.models import ResearchReport
 from trend_researcher.progress import NODE_COMPILE_REPORT, make_emitter
-from trend_researcher.state import State
+from trend_researcher.state import AgentState
 
 
-def compile_report(state: State) -> State:
+def compile_report(state: AgentState, config: RunnableConfig | None = None) -> dict:
     """選定コンテンツ・要約・共通ネタをまとめた ResearchReport を組み立てる。"""
+    configurable = Configuration.from_runnable_config(config)
     emitter = make_emitter()
     emitter.emit(7, NODE_COMPILE_REPORT, "開始")
 

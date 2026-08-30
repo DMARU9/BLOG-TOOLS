@@ -2,27 +2,31 @@
 
 from __future__ import annotations
 
+from langchain_core.runnables import RunnableConfig
+
+from trend_researcher.configuration import Configuration
 from trend_researcher.progress import NODE_SEARCH, make_emitter
-from trend_researcher.state import State
+from trend_researcher.state import AgentState
 
 
-def search_node(state: State) -> State:
+def search_node(state: AgentState, config: RunnableConfig | None = None) -> dict:
     """provider.search を呼び出し、上位 N 件の候補を選定する。"""
+    configurable = Configuration.from_runnable_config(config)
     emitter = make_emitter()
     emitter.emit(3, NODE_SEARCH, "開始")
 
     provider = state["provider"]
     instruction = state["instruction"]
     queries = state.get("search_queries") or []
-    config = state.get("config")
-    max_results = instruction.max_results or 5
+    cfg = state.get("config")
+    max_results = configurable.max_results if configurable.max_results != 5 else (instruction.max_results or 5)
 
     candidates = provider.search(
         queries=queries,
         max_results=max_results,
         published_after=instruction.published_after,
         sort_by=instruction.sort_by or "relevance",
-        config=config,
+        config=cfg,
     )
 
     emitter.emit(3, NODE_SEARCH, "完了", detail=f"{len(candidates)} 件を選定")

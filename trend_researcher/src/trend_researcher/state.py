@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, TypedDict
+from typing import Any
+
+from langgraph.graph import MessagesState
 
 from trend_researcher.models import (
     AnalysisFinding,
@@ -17,11 +19,12 @@ from trend_researcher.models import (
 from trend_researcher.providers.base import Provider
 
 
-class State(TypedDict, total=False):
+class AgentState(MessagesState):
     """リサーチ実行中の状態。
 
     parse_instruction → plan_search → search → fetch
     → analyze_content → extract_common → compile_report の各ノード間で受け渡す。
+    messages フィールドはユーザー入力・AI応答・進捗メッセージを格納する。
     """
 
     provider: Provider

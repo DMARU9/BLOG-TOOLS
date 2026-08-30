@@ -3,7 +3,7 @@
 from trend_researcher.models import ResearchInstruction
 from trend_researcher.nodes.plan_search import plan_search
 from trend_researcher.providers import get_provider
-from trend_researcher.state import State
+from trend_researcher.state import AgentState
 
 
 class _FakeResult:
@@ -28,7 +28,7 @@ def _fake_model_with_year():
 def test_plan_search_x_returns_multiple_queries():
     provider = get_provider("x")
     instruction = ResearchInstruction(raw_text="オタクの活動における困りごとを調査したい", platform="x", topic="オタクの活動における困りごと")
-    state: State = {"provider": provider, "instruction": instruction}
+    state: AgentState = {"provider": provider, "instruction": instruction}
     with __import__("unittest").mock.patch(
         "trend_researcher.nodes.plan_search.build_model", return_value=_fake_model_multiple()
     ):
@@ -44,7 +44,7 @@ def test_plan_search_x_returns_multiple_queries():
 def test_plan_search_cleans_year_and_period():
     provider = get_provider("x")
     instruction = ResearchInstruction(raw_text="test", platform="x", topic="test")
-    state: State = {"provider": provider, "instruction": instruction}
+    state: AgentState = {"provider": provider, "instruction": instruction}
     with __import__("unittest").mock.patch(
         "trend_researcher.nodes.plan_search.build_model", return_value=_fake_model_with_year()
     ):

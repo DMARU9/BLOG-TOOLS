@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import re
 
+from langchain_core.runnables import RunnableConfig
+
+from trend_researcher.configuration import Configuration
 from trend_researcher.models import AnalysisFinding, CommonTheme
 from trend_researcher.progress import NODE_EXTRACT_COMMON, make_emitter
-from trend_researcher.state import State
+from trend_researcher.state import AgentState
 from trend_researcher.tools.llm import build_model
 from trend_researcher.tools.parse import extract_list_items, extract_section
 
@@ -22,8 +25,9 @@ def _format_analyses(analyses: list[AnalysisFinding]) -> str:
     return "\n".join(lines)
 
 
-def extract_common(state: State) -> State:
+def extract_common(state: AgentState, config: RunnableConfig | None = None) -> dict:
     """コンテンツ間の共通ネタを抽出する。"""
+    configurable = Configuration.from_runnable_config(config)
     provider = state["provider"]
     emitter = make_emitter()
     emitter.emit(6, NODE_EXTRACT_COMMON, "開始")

@@ -5,9 +5,12 @@ from __future__ import annotations
 import re
 from datetime import UTC, datetime, timedelta
 
+from langchain_core.runnables import RunnableConfig
+
+from trend_researcher.configuration import Configuration
 from trend_researcher.models import OutputFormat, OutputSpec, ResearchInstruction
 from trend_researcher.progress import NODE_PARSE_INSTRUCTION, make_emitter
-from trend_researcher.state import State
+from trend_researcher.state import AgentState
 from trend_researcher.tools.llm import build_model
 from trend_researcher.tools.parse import extract_json_block
 
@@ -72,8 +75,9 @@ def _extract_count_from_text(text: str) -> int | None:
     return None
 
 
-def parse_instruction(state: State) -> State:
+def parse_instruction(state: AgentState, config: RunnableConfig | None = None) -> dict:
     """自然言語指示からトピック・件数・投稿日下限を抽出する。"""
+    configurable = Configuration.from_runnable_config(config)
     provider = state.get("provider")
     emitter = make_emitter()
     emitter.emit(1, NODE_PARSE_INSTRUCTION, "開始")
@@ -86,22 +90,28 @@ def parse_instruction(state: State) -> State:
     parsed = extract_json_block(text) or {}
 
     topic = str(parsed.get("topic", "")).strip() or raw
-    # 件数: CLI/run 上書き（state.max_results）＞自然言語＞LLM
-    cli_max = state.get("max_results")
-    if cli_max is not None:
-        max_results = int(cli_max)
+    # 件数: Configuration設定 > CLI/run 上書き（state.max_results）＞自然言語＞LLM
+    if configurable.max_results != 5:  # Configuration設定がある場合
+        max_results = configurable.max_results
     else:
-        nl = _extract_count_from_text(raw)
-        max_results = nl if nl is not None else int(parsed.get("max_results", 5) or 5)
-    # 出力形式: CLI/run（state.output_format）＞自然言語/LLM
-    cli_fmt = state.get("output_format")
-    if cli_fmt is not None:
-        output_format = cli_fmt
+        cli_max = state.get("max_results")
+        if cli_max is not None:
+            max_results = int(cli_max)
+        else:
+            nl = _extract_count_from_text(raw)
+            max_results = nl if nl is not None else int(parsed.get("max_results", 5) or 5)
+    # 出力形式: Configuration設定 > CLI/run（state.output_format）＞自然言語/LLM
+    if configurable.output_format != "markdown":  # Configuration設定がある場合
+        output_format = OutputFormat.JSON if configurable.output_format == "json" else OutputFormat.MARKDOWN
     else:
-        fmt = str(parsed.get("output_format", "markdown")).lower()
-        output_format = OutputFormat.JSON if fmt == "json" else OutputFormat.MARKDOWN
+        cli_fmt = state.get("output_format")
+        if cli_fmt is not None:
+            output_format = cli_fmt
+        else:
+            fmt = str(parsed.get("output_format", "markdown")).lower()
+            output_format = OutputFormat.JSON if fmt == "json" else OutputFormat.MARKDOWN
 
-    # 期間: CLI --since（state.published_after）＞自然言語
+    # 期間: Configuration設定 > CLI --since（state.published_after）＞自然言語
     cli_since = state.get("published_after")
     published_after = cli_since or _extract_published_after_from_text(raw) or _parse_date_from_text(raw)
 
@@ -113,9 +123,9 @@ def parse_instruction(state: State) -> State:
         max_results=max_results,
         output=OutputSpec(format=output_format),
         published_after=published_after,
-        use_trends=bool(state.get("use_trends", False)),
-        sort_by=str(state.get("sort_by", "relevance")),
-        transcript_language=str(state.get("transcript_language", "ja") or "ja"),
+        use_trends=bool(configurable.use_trends) if configurable.use_trends else bool(state.get("use_trends", False)),
+        sort_by=str(configurable.sort_by) if configurable.sort_by != "relevance" else str(state.get("sort_by", "relevance")),
+        transcript_language=str(configurable.transcript_language) if configurable.transcript_language != "ja" else str(state.get("transcript_language", "ja") or "ja"),
     )
 
     emitter.emit(1, NODE_PARSE_INSTRUCTION, "完了", detail=f'トピック: "{topic}" / 件数: {max_results}')

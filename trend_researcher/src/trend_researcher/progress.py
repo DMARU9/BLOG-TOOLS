@@ -1,9 +1,11 @@
-"""ノード進捗エミッタ（FR-013 対応）。stderr へ逐次出力。"""
+"""ノード進捗エミッタ（FR-013 対応）。LangGraph ストリーミング対応。"""
 
 from __future__ import annotations
 
 import sys
 from typing import TextIO
+
+from langchain_core.messages import AIMessage
 
 
 class ProgressEmitter:
@@ -18,19 +20,18 @@ class ProgressEmitter:
     def __init__(self, total: int = TOTAL, stream: TextIO | None = None) -> None:
         self.total = total
         self._stream = stream or sys.stderr
+        self._messages: list[AIMessage] = []
 
     def emit(self, node_index: int, node_name: str, phase: str, detail: str = "") -> None:
-        """進捗を stderr へ出力。
-
-        Args:
-            node_index: ノード順序（1始まり）。
-            node_name: ノード名。
-            phase: "開始" | "完了"。
-            detail: 任意の補足（クエリ内容等）。
-        """
+        """進捗を stderr へ出力し、AIMessage を内部リストに追加。"""
         suffix = f"（{detail}）" if detail else ""
         line = f"[{node_index}/{self.total}] {node_name} ... {phase}{suffix}"
         print(line, file=self._stream, flush=True)
+        self._messages.append(AIMessage(content=line))
+
+    def get_messages(self) -> list[AIMessage]:
+        """蓄積された進捗メッセージのリストを返す。"""
+        return list(self._messages)
 
 
 # ノード名の固定定義（順序と一致させる）

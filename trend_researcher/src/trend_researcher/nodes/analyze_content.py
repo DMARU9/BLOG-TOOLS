@@ -5,9 +5,12 @@ from __future__ import annotations
 import asyncio
 import re
 
+from langchain_core.runnables import RunnableConfig
+
+from trend_researcher.configuration import Configuration
 from trend_researcher.models import AnalysisFinding, BlogAngle
 from trend_researcher.progress import NODE_ANALYZE_CONTENT, make_emitter
-from trend_researcher.state import State
+from trend_researcher.state import AgentState
 from trend_researcher.tools.llm import build_model
 from trend_researcher.tools.parse import extract_list_items, extract_section
 
@@ -95,8 +98,9 @@ async def _analyze_all(candidates: list["Candidate"], contexts_by_id: dict[str, 
     return await asyncio.gather(*[_bounded(c) for c in candidates])
 
 
-def analyze_content(state: State) -> State:
+def analyze_content(state: AgentState, config: RunnableConfig | None = None) -> dict:
     """各コンテンツを「ブログ執筆の参考」として要約する（並列上限 2）。"""
+    configurable = Configuration.from_runnable_config(config)
     emitter = make_emitter()
     emitter.emit(5, NODE_ANALYZE_CONTENT, "開始", detail="並列上限 2")
 
