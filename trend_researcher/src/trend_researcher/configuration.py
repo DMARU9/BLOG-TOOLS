@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
-
 from langchain_core.runnables import RunnableConfig
 from pydantic import BaseModel, Field
 
@@ -17,7 +15,11 @@ class Configuration(BaseModel):
     sort_by: str = Field(default="relevance", description="選定基準（relevance/likes）")
     transcript_language: str = Field(default="ja", description="字幕優先言語")
     use_trends: bool = Field(default=False, description="トレンドワード探索モード")
-    cache_dir: Optional[str] = Field(default=None, description="中間成果物の永続化先")
+    cache_dir: str | None = Field(default=None, description="中間成果物の永続化先")
+    published_after: str | None = Field(
+        default=None,
+        description="投稿日下限（ISO 8601）。CLI --since からのみ設定。",
+    )
 
     @classmethod
     def from_runnable_config(cls, config: RunnableConfig | None = None) -> Configuration:

@@ -10,17 +10,18 @@ from trend_researcher.cache import write_json
 from trend_researcher.configuration import Configuration
 from trend_researcher.models import ResearchReport
 from trend_researcher.progress import NODE_COMPILE_REPORT, make_emitter
+from trend_researcher.providers import get_provider
 from trend_researcher.state import AgentState
 
 
-def compile_report(state: AgentState, config: RunnableConfig | None = None) -> dict:
+def compile_report(state: AgentState, config: RunnableConfig) -> dict:
     """選定コンテンツ・要約・共通ネタをまとめた ResearchReport を組み立てる。"""
     configurable = Configuration.from_runnable_config(config)
     emitter = make_emitter()
     emitter.emit(7, NODE_COMPILE_REPORT, "開始")
     progress_messages = emitter.get_messages()
 
-    provider = state["provider"]
+    provider = get_provider(configurable.platform)
     instruction = state["instruction"]
     candidates = state.get("candidates", [])
     analyses = state.get("analyses", [])

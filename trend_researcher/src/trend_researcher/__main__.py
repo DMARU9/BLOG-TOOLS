@@ -78,30 +78,16 @@ async def _run_async(args: argparse.Namespace, config: Config) -> dict:
         transcript_language=lang,
         use_trends=args.trends,
         cache_dir=str(config.cache_dir),
+        published_after=since.isoformat() if since else None,
     )
 
     runnable_config: RunnableConfig = {
         "configurable": configuration.model_dump(),
     }
 
-    # 外部設定（provider, config, 検索パラメータ）を初期ステートに渡す
-    from trend_researcher.providers import get_provider
-
-    provider = get_provider(platform)
-    instruction_raw = args.instruction
-
+    # ユーザー入力は messages のみ。設定は RunnableConfig（Configuration）経由で渡す。
     initial_state = {
-        "messages": [HumanMessage(content=instruction_raw)],
-        "provider": provider,
-        "config": config,
-        "instruction_raw": instruction_raw,
-        "published_after": since,
-        "max_results": args.max_results,
-        "output_format": output_format,
-        "use_trends": args.trends,
-        "sort_by": args.sort,
-        "transcript_language": lang,
-        "cache_dir": str(config.cache_dir),
+        "messages": [HumanMessage(content=args.instruction)],
     }
 
     return await asyncio.wait_for(

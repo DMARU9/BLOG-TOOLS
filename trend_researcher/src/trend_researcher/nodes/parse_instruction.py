@@ -10,6 +10,7 @@ from langchain_core.runnables import RunnableConfig
 from trend_researcher.configuration import Configuration
 from trend_researcher.models import OutputFormat, OutputSpec, ResearchInstruction
 from trend_researcher.progress import NODE_PARSE_INSTRUCTION, make_emitter
+from trend_researcher.providers import get_provider
 from trend_researcher.state import AgentState
 from trend_researcher.tools.llm import build_model
 from trend_researcher.tools.parse import extract_json_block
@@ -75,15 +76,17 @@ def _extract_count_from_text(text: str) -> int | None:
     return None
 
 
-def parse_instruction(state: AgentState, config: RunnableConfig | None = None) -> dict:
+def parse_instruction(state: AgentState, config: RunnableConfig) -> dict:
     """自然言語指示からトピック・件数・投稿日下限を抽出する。"""
     configurable = Configuration.from_runnable_config(config)
-    provider = state.get("provider")
+    provider = get_provider(configurable.platform)
     emitter = make_emitter()
     emitter.emit(1, NODE_PARSE_INSTRUCTION, "開始")
     progress_messages = emitter.get_messages()
 
-    raw = state.get("instruction_raw", "")
+    # instruction_raw: ユーザーの最新メッセージから抽出
+    messages = state.get("messages", [])
+    raw = messages[-1].content if messages else ""
     model = build_model("research")
     prompt = provider.parse_instruction_prompt.format(instruction=raw)
     result = model.invoke(prompt)
@@ -112,9 +115,14 @@ def parse_instruction(state: AgentState, config: RunnableConfig | None = None) -
             fmt = str(parsed.get("output_format", "markdown")).lower()
             output_format = OutputFormat.JSON if fmt == "json" else OutputFormat.MARKDOWN
 
-    # 期間: Configuration設定 > CLI --since（state.published_after）＞自然言語
+    # 期間: Configuration.published_after ＞ CLI --since ＞自然言語
     cli_since = state.get("published_after")
-    published_after = cli_since or _extract_published_after_from_text(raw) or _parse_date_from_text(raw)
+    config_since = configurable.published_after
+    published_after = (
+        datetime.fromisoformat(config_since).replace(tzinfo=UTC)
+        if config_since
+        else None
+    ) or cli_since or _extract_published_after_from_text(raw) or _parse_date_from_text(raw)
 
     platform = provider.name
     instruction = ResearchInstruction(

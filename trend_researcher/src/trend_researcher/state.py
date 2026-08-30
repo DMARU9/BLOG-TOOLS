@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
 
 from langgraph.graph import MessagesState
 
@@ -16,7 +15,12 @@ from trend_researcher.models import (
     ResearchInstruction,
     ResearchReport,
 )
-from trend_researcher.providers.base import Provider
+
+
+class AgentInputState(MessagesState):
+    """グラフの入力ステート。messages のみ。"""
+
+    pass
 
 
 class AgentState(MessagesState):
@@ -25,12 +29,12 @@ class AgentState(MessagesState):
     parse_instruction → plan_search → search → fetch
     → analyze_content → extract_common → compile_report の各ノード間で受け渡す。
     messages フィールドはユーザー入力・AI応答・進捗メッセージを格納する。
+
+    provider / config はランタイムオブジェクトなのでステートに持たせず、
+    各ノードが Configuration から都度生成する。
     """
 
-    provider: Provider
-    config: Any
     instruction: ResearchInstruction
-    instruction_raw: str
     search_query: str
     search_queries: list[str]
     published_after: datetime | None

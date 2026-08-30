@@ -8,6 +8,7 @@ from langchain_core.runnables import RunnableConfig
 
 from trend_researcher.configuration import Configuration
 from trend_researcher.progress import NODE_PLAN_SEARCH, make_emitter
+from trend_researcher.providers import get_provider
 from trend_researcher.state import AgentState
 from trend_researcher.tools.llm import build_model
 
@@ -23,10 +24,10 @@ def _clean_query(query: str) -> str:
     return q
 
 
-def plan_search(state: AgentState, config: RunnableConfig | None = None) -> dict:
+def plan_search(state: AgentState, config: RunnableConfig) -> dict:
     """指示から検索クエリを生成する（X: 複数 / YouTube: 単一）。"""
     configurable = Configuration.from_runnable_config(config)
-    provider = state["provider"]
+    provider = get_provider(configurable.platform)
     emitter = make_emitter()
     emitter.emit(2, NODE_PLAN_SEARCH, "開始", detail="LLM が検索クエリを生成中")
     progress_messages = emitter.get_messages()

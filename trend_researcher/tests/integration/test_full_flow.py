@@ -21,7 +21,6 @@ from trend_researcher.models import (
     OutputFormat,
     ResearchReport,
 )
-from trend_researcher.providers import get_provider
 
 
 def _fake_candidates_x(n: int) -> list[Candidate]:
@@ -159,20 +158,10 @@ def patched_youtube():
 
 def _run_graph_sync(instruction: str, platform: str = "x", **kwargs) -> dict:
     """テスト用の同期ラッパー: trend_researcher グラフを実行する。"""
-    provider = get_provider(platform)
     config = Config.load(platform=platform, cache_dir=kwargs.get("cache_dir"), max_results=kwargs.get("max_results"))
     output_format = kwargs.pop("output_format", OutputFormat.MARKDOWN)
     initial_state = {
         "messages": [HumanMessage(content=instruction)],
-        "provider": provider,
-        "config": config,
-        "instruction_raw": instruction,
-        "max_results": kwargs.get("max_results"),
-        "output_format": output_format,
-        "sort_by": kwargs.get("sort_by", "relevance"),
-        "transcript_language": kwargs.get("transcript_language", "ja"),
-        "use_trends": kwargs.get("use_trends", False),
-        "cache_dir": str(config.cache_dir),
     }
     runnable_config: RunnableConfig = {
         "configurable": {

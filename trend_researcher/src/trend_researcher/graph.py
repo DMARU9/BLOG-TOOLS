@@ -20,14 +20,14 @@ from trend_researcher.nodes.parse_instruction import parse_instruction
 from trend_researcher.nodes.plan_search import plan_search
 from trend_researcher.nodes.search import search_node
 from trend_researcher.providers import get_provider
-from trend_researcher.state import AgentState
+from trend_researcher.state import AgentInputState, AgentState
 
 EXECUTION_TIMEOUT = timedelta(minutes=100)
 
 
 def build_graph() -> Any:
     """単一検索の StateGraph を構築する（プラットフォーム共通）。"""
-    graph = StateGraph(AgentState)
+    graph = StateGraph(AgentState, input_schema=AgentInputState)
     graph.add_node("parse_instruction", parse_instruction)
     graph.add_node("plan_search", plan_search)
     graph.add_node("search", search_node)
