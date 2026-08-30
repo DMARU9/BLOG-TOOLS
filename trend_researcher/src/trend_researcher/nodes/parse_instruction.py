@@ -79,7 +79,9 @@ def _extract_count_from_text(text: str) -> int | None:
 def parse_instruction(state: AgentState, config: RunnableConfig) -> dict:
     """自然言語指示からトピック・件数・投稿日下限を抽出する。"""
     configurable = Configuration.from_runnable_config(config)
-    provider = get_provider(configurable.platform)
+    # platform: ユーザー入力（state）> Configuration
+    platform = state.get("platform") or configurable.platform
+    provider = get_provider(platform)
     emitter = make_emitter()
     emitter.emit(1, NODE_PARSE_INSTRUCTION, "開始")
     progress_messages = emitter.get_messages()
@@ -94,16 +96,15 @@ def parse_instruction(state: AgentState, config: RunnableConfig) -> dict:
     parsed = extract_json_block(text) or {}
 
     topic = str(parsed.get("topic", "")).strip() or raw
-    # 件数: Configuration設定 > CLI/run 上書き（state.max_results）＞自然言語＞LLM
-    if configurable.max_results != 5:  # Configuration設定がある場合
+    # 件数: ユーザー入力（state）> Configuration > 自然言語 > LLM
+    input_max = state.get("max_results")
+    if input_max is not None and input_max != 5:  # ユーザー入力がある場合
+        max_results = int(input_max)
+    elif configurable.max_results != 5:  # Configuration設定がある場合
         max_results = configurable.max_results
     else:
-        cli_max = state.get("max_results")
-        if cli_max is not None:
-            max_results = int(cli_max)
-        else:
-            nl = _extract_count_from_text(raw)
-            max_results = nl if nl is not None else int(parsed.get("max_results", 5) or 5)
+        nl = _extract_count_from_text(raw)
+        max_results = nl if nl is not None else int(parsed.get("max_results", 5) or 5)
     # 出力形式: Configuration設定 > CLI/run（state.output_format）＞自然言語/LLM
     if configurable.output_format != "markdown":  # Configuration設定がある場合
         output_format = OutputFormat.JSON if configurable.output_format == "json" else OutputFormat.MARKDOWN

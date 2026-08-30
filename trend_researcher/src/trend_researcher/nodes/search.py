@@ -19,10 +19,11 @@ def search_node(state: AgentState, config: RunnableConfig) -> dict:
     emitter.emit(3, NODE_SEARCH, "開始")
     progress_messages = emitter.get_messages()
 
-    provider = get_provider(configurable.platform)
+    platform = state.get("platform") or configurable.platform
+    provider = get_provider(platform)
     instruction = state["instruction"]
     queries = state.get("search_queries") or []
-    cfg = Config.load(platform=configurable.platform)
+    cfg = Config.load(platform=platform)
     max_results = configurable.max_results if configurable.max_results != 5 else (instruction.max_results or 5)
 
     candidates = provider.search(

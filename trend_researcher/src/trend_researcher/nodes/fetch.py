@@ -18,8 +18,9 @@ def fetch_node(state: AgentState, config: RunnableConfig) -> dict:
     emitter.emit(4, NODE_FETCH, "開始")
     progress_messages = emitter.get_messages()
 
-    provider = get_provider(configurable.platform)
-    cfg = Config.load(platform=configurable.platform)
+    platform = state.get("platform") or configurable.platform
+    provider = get_provider(platform)
+    cfg = Config.load(platform=platform)
     candidates = state.get("candidates", [])
     instruction = state.get("instruction")
     sort_by = (instruction.sort_by if instruction else None) or "relevance"

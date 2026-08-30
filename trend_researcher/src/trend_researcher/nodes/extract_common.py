@@ -29,7 +29,8 @@ def _format_analyses(analyses: list[AnalysisFinding]) -> str:
 def extract_common(state: AgentState, config: RunnableConfig) -> dict:
     """コンテンツ間の共通ネタを抽出する。"""
     configurable = Configuration.from_runnable_config(config)
-    provider = get_provider(configurable.platform)
+    platform = state.get("platform") or configurable.platform
+    provider = get_provider(platform)
     emitter = make_emitter()
     emitter.emit(6, NODE_EXTRACT_COMMON, "開始")
     progress_messages = emitter.get_messages()

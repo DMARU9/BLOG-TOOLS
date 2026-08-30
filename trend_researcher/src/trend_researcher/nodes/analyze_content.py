@@ -106,7 +106,8 @@ def analyze_content(state: AgentState, config: RunnableConfig) -> dict:
     emitter.emit(5, NODE_ANALYZE_CONTENT, "開始", detail="並列上限 2")
     progress_messages = emitter.get_messages()
 
-    provider = get_provider(configurable.platform)
+    platform = state.get("platform") or configurable.platform
+    provider = get_provider(platform)
     candidates = state.get("candidates", [])
     contexts_by_id = {c.id: c for c in state.get("contexts", [])}
     analyses = asyncio.run(_analyze_all(candidates, contexts_by_id, provider))

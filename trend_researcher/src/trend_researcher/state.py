@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 
 from langgraph.graph import MessagesState
 
@@ -18,9 +19,10 @@ from trend_researcher.models import (
 
 
 class AgentInputState(MessagesState):
-    """グラフの入力ステート。messages のみ。"""
+    """グラフの入力ステート。LangGraph Studio UI で表示される入力欄。"""
 
-    pass
+    platform: Literal["x", "youtube"] = "x"
+    max_results: int = 5
 
 
 class AgentState(MessagesState):

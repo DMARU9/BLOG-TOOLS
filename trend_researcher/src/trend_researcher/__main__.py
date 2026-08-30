@@ -85,9 +85,11 @@ async def _run_async(args: argparse.Namespace, config: Config) -> dict:
         "configurable": configuration.model_dump(),
     }
 
-    # ユーザー入力は messages のみ。設定は RunnableConfig（Configuration）経由で渡す。
+    # ユーザー入力は messages + platform + max_results。設定は RunnableConfig（Configuration）経由で渡す。
     initial_state = {
         "messages": [HumanMessage(content=args.instruction)],
+        "platform": platform,
+        "max_results": args.max_results or 5,
     }
 
     return await asyncio.wait_for(

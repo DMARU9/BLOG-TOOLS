@@ -21,7 +21,8 @@ def compile_report(state: AgentState, config: RunnableConfig) -> dict:
     emitter.emit(7, NODE_COMPILE_REPORT, "開始")
     progress_messages = emitter.get_messages()
 
-    provider = get_provider(configurable.platform)
+    platform = state.get("platform") or configurable.platform
+    provider = get_provider(platform)
     instruction = state["instruction"]
     candidates = state.get("candidates", [])
     analyses = state.get("analyses", [])
