@@ -1,6 +1,5 @@
 """trend_researcher グラフの統合テスト。"""
 
-from unittest.mock import MagicMock, patch
 
 from trend_researcher.configuration import Configuration
 from trend_researcher.graph import build_graph, trend_researcher
@@ -27,9 +26,6 @@ class TestAgentState:
 
     def test_agent_state_has_messages_field(self):
         """AgentState が messages フィールドを持つこと。"""
-        from typing import get_type_hints
-
-        hints = get_type_hints(AgentState)
         assert "messages" in AgentState.__annotations__ or "messages" in dir(AgentState)
 
     def test_agent_state_inherits_messages_state(self):

@@ -15,8 +15,6 @@ from trend_researcher.models import (
 )
 
 __all__ = [
-    "trend_researcher",
-    "render_report",
     "AnalysisFinding",
     "BlogAngle",
     "Candidate",
@@ -27,4 +25,6 @@ __all__ = [
     "OutputSpec",
     "ResearchInstruction",
     "ResearchReport",
+    "render_report",
+    "trend_researcher",
 ]

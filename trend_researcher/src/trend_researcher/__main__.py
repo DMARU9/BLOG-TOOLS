@@ -8,11 +8,11 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 
-from trend_researcher.configuration import Configuration
 from trend_researcher.config import Config
+from trend_researcher.configuration import Configuration
 from trend_researcher.graph import EXECUTION_TIMEOUT, render_report, trend_researcher
 from trend_researcher.models import OutputFormat
 from trend_researcher.providers import available_platforms
@@ -121,21 +121,17 @@ def main(argv: list[str] | None = None) -> int:
 
     platform = args.platform
     config = Config.load(platform=platform, cache_dir=args.cache_dir, max_results=args.max_results)
-    lang = args.lang or config.transcript_language
 
-    output_format = OutputFormat.JSON if args.format == "json" else OutputFormat.MARKDOWN
-
-    since: datetime | None = None
     if args.since:
         try:
-            since = datetime.strptime(args.since, "%Y-%m-%d").replace(tzinfo=UTC)
+            datetime.strptime(args.since, "%Y-%m-%d").replace(tzinfo=UTC)
         except ValueError:
             print(f"[エラー] --since は YYYY-MM-DD 形式で指定してください: {args.since}", file=sys.stderr, flush=True)
             return 2
 
     try:
         result = asyncio.run(_run_async(args, config))
-    except asyncio.TimeoutError:
+    except TimeoutError:
         print(
             f"[警告] リサーチが時間上限（{int(EXECUTION_TIMEOUT.total_seconds() / 60)}分）に達しました。途中結果を返します。",
             file=sys.stderr,

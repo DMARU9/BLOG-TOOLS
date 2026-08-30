@@ -7,6 +7,7 @@ from typing import Any
 
 from langgraph.graph import END, StateGraph
 
+from trend_researcher.models import ResearchReport
 from trend_researcher.nodes.analyze_content import analyze_content
 from trend_researcher.nodes.compile_report import (
     compile_report,
