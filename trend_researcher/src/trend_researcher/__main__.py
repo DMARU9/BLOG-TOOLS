@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
+
+from trend_researcher.configuration import Configuration
 from trend_researcher.config import Config
-from trend_researcher.graph import render_report, run
+from trend_researcher.graph import render_report, trend_researcher
 from trend_researcher.models import OutputFormat
 from trend_researcher.providers import available_platforms
 
@@ -54,6 +59,54 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+async def _run_async(args: argparse.Namespace, config: Config) -> dict:
+    """非同期でリサーチを実行し、結果辞書を返す。"""
+    platform = args.platform
+    lang = args.lang or config.transcript_language
+    output_format = OutputFormat.JSON if args.format == "json" else OutputFormat.MARKDOWN
+
+    since: datetime | None = None
+    if args.since:
+        since = datetime.strptime(args.since, "%Y-%m-%d").replace(tzinfo=UTC)
+
+    # Configuration に設定値を反映
+    configuration = Configuration(
+        platform=platform,
+        output_format=output_format.value,
+        max_results=args.max_results or 5,
+        sort_by=args.sort,
+        transcript_language=lang,
+        use_trends=args.trends,
+        cache_dir=str(config.cache_dir),
+    )
+
+    runnable_config: RunnableConfig = {
+        "configurable": configuration.model_dump(),
+    }
+
+    # 外部設定（provider, config, 検索パラメータ）を初期ステートに渡す
+    from trend_researcher.providers import get_provider
+
+    provider = get_provider(platform)
+    instruction_raw = args.instruction
+
+    initial_state = {
+        "messages": [HumanMessage(content=instruction_raw)],
+        "provider": provider,
+        "config": config,
+        "instruction_raw": instruction_raw,
+        "published_after": since,
+        "max_results": args.max_results,
+        "output_format": output_format,
+        "use_trends": args.trends,
+        "sort_by": args.sort,
+        "transcript_language": lang,
+        "cache_dir": str(config.cache_dir),
+    }
+
+    return await trend_researcher.ainvoke(initial_state, runnable_config)
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI メイン。戻り値は終了コード（0/1/2）。"""
     try:
@@ -78,19 +131,14 @@ def main(argv: list[str] | None = None) -> int:
             return 2
 
     try:
-        report = run(
-            args.instruction,
-            platform=platform,
-            max_results=args.max_results,
-            transcript_language=lang,
-            output_format=output_format,
-            since=since,
-            use_trends=args.trends,
-            sort_by=args.sort,
-            cache_dir=str(config.cache_dir),
-        )
+        result = asyncio.run(_run_async(args, config))
     except Exception as exc:  # noqa: BLE001
         print(f"[エラー] リサーチ実行中に問題が発生しました: {exc}", file=sys.stderr, flush=True)
+        return 1
+
+    report = result.get("report")
+    if report is None:
+        print("[エラー] レポートが生成されませんでした。", file=sys.stderr, flush=True)
         return 1
 
     if not report.candidates:
