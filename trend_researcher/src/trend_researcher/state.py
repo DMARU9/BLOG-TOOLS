@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, TypedDict
+from typing import Literal
+
+from langgraph.graph import MessagesState
 
 from trend_researcher.models import (
     AnalysisFinding,
@@ -14,20 +16,27 @@ from trend_researcher.models import (
     ResearchInstruction,
     ResearchReport,
 )
-from trend_researcher.providers.base import Provider
 
 
-class State(TypedDict, total=False):
+class AgentInputState(MessagesState):
+    """グラフの入力ステート。LangGraph Studio UI で表示される入力欄。"""
+
+    platform: Literal["x", "youtube"] = "x"
+    max_results: int = 5
+
+
+class AgentState(MessagesState):
     """リサーチ実行中の状態。
 
     parse_instruction → plan_search → search → fetch
     → analyze_content → extract_common → compile_report の各ノード間で受け渡す。
+    messages フィールドはユーザー入力・AI応答・進捗メッセージを格納する。
+
+    provider / config はランタイムオブジェクトなのでステートに持たせず、
+    各ノードが Configuration から都度生成する。
     """
 
-    provider: Provider
-    config: Any
     instruction: ResearchInstruction
-    instruction_raw: str
     search_query: str
     search_queries: list[str]
     published_after: datetime | None

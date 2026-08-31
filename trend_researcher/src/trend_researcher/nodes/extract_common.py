@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import re
 
+from langchain_core.runnables import RunnableConfig
+
+from trend_researcher.configuration import Configuration
 from trend_researcher.models import AnalysisFinding, CommonTheme
 from trend_researcher.progress import NODE_EXTRACT_COMMON, make_emitter
-from trend_researcher.state import State
+from trend_researcher.providers import get_provider
+from trend_researcher.state import AgentState
 from trend_researcher.tools.llm import build_model
 from trend_researcher.tools.parse import extract_list_items, extract_section
 
@@ -22,11 +26,14 @@ def _format_analyses(analyses: list[AnalysisFinding]) -> str:
     return "\n".join(lines)
 
 
-def extract_common(state: State) -> State:
+def extract_common(state: AgentState, config: RunnableConfig) -> dict:
     """コンテンツ間の共通ネタを抽出する。"""
-    provider = state["provider"]
+    configurable = Configuration.from_runnable_config(config)
+    platform = state.get("platform") or configurable.platform
+    provider = get_provider(platform)
     emitter = make_emitter()
     emitter.emit(6, NODE_EXTRACT_COMMON, "開始")
+    progress_messages = emitter.get_messages()
 
     analyses = state.get("analyses", [])
     model = build_model("research")
@@ -37,7 +44,8 @@ def extract_common(state: State) -> State:
     themes = _parse_themes(text, [a.id for a in analyses])
 
     emitter.emit(6, NODE_EXTRACT_COMMON, "完了", detail=f"{len(themes)} 件の共通テーマ")
-    return {"common_themes": themes}
+    progress_messages.extend(emitter.get_messages())
+    return {"common_themes": themes, "messages": progress_messages}
 
 
 def _split_sections(text: str) -> list[list[str]]:

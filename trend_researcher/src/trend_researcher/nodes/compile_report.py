@@ -4,18 +4,25 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from langchain_core.runnables import RunnableConfig
+
 from trend_researcher.cache import write_json
+from trend_researcher.configuration import Configuration
 from trend_researcher.models import ResearchReport
 from trend_researcher.progress import NODE_COMPILE_REPORT, make_emitter
-from trend_researcher.state import State
+from trend_researcher.providers import get_provider
+from trend_researcher.state import AgentState
 
 
-def compile_report(state: State) -> State:
+def compile_report(state: AgentState, config: RunnableConfig) -> dict:
     """選定コンテンツ・要約・共通ネタをまとめた ResearchReport を組み立てる。"""
+    configurable = Configuration.from_runnable_config(config)
     emitter = make_emitter()
     emitter.emit(7, NODE_COMPILE_REPORT, "開始")
+    progress_messages = emitter.get_messages()
 
-    provider = state["provider"]
+    platform = state.get("platform") or configurable.platform
+    provider = get_provider(platform)
     instruction = state["instruction"]
     candidates = state.get("candidates", [])
     analyses = state.get("analyses", [])
@@ -57,7 +64,17 @@ def compile_report(state: State) -> State:
         except Exception as exc:  # noqa: BLE001
             emitter.emit(7, NODE_COMPILE_REPORT, f"キャッシュ書き込み失敗: {exc}")
 
-    return {"report": report}
+    progress_messages.extend(emitter.get_messages())
+
+    # チャット表示用は常に Markdown で描画（CLI の出力形式指定は影響しない）
+    from langchain_core.messages import AIMessage
+
+    rendered = render_markdown(report, provider)
+
+    summary = f"レポート完了: {len(candidates)} 件の候補を分析し、{len(common_themes)} 件の共通テーマを抽出しました。"
+    progress_messages.append(AIMessage(content=summary))
+    progress_messages.append(AIMessage(content=rendered))
+    return {"report": report, "messages": progress_messages}
 
 
 def _render_candidates_table(report: ResearchReport, provider: "Provider") -> list[str]:  # noqa: F821

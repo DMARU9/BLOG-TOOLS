@@ -70,3 +70,8 @@ class Provider(Protocol):
     def common_theme_supporting_label(self) -> str:
         """「該当ツイート」「該当動画」などのラベル。"""
         ...
+
+    # --- 再ソート ---
+    def resort(self, candidates: list[Candidate], sort_by: str) -> list[Candidate]:
+        """候補を指定された基準で再ソートする（デフォルトは順序変更なし）。"""
+        return candidates

@@ -1,7 +1,7 @@
 """Trend Researcher - 自然言語指示から自律的にトレンドリサーチレポートを生成するツール（X / YouTube 共通）。"""
 
 from trend_researcher.config import Config
-from trend_researcher.graph import render_report, run
+from trend_researcher.graph import render_report, trend_researcher
 from trend_researcher.models import (
     AnalysisFinding,
     BlogAngle,
@@ -15,8 +15,6 @@ from trend_researcher.models import (
 )
 
 __all__ = [
-    "run",
-    "render_report",
     "AnalysisFinding",
     "BlogAngle",
     "Candidate",
@@ -27,4 +25,6 @@ __all__ = [
     "OutputSpec",
     "ResearchInstruction",
     "ResearchReport",
+    "render_report",
+    "trend_researcher",
 ]
